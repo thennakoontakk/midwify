@@ -123,8 +123,7 @@ class _LoginScreenState extends State<LoginScreen>
       // Success — navigate to dashboard
       if (mounted) {
         setState(() => _isLoading = false);
-        // TODO: Navigate to the main dashboard screen
-        // Navigator.pushReplacementNamed(context, '/dashboard');
+        Navigator.pushReplacementNamed(context, '/dashboard');
       }
     } on FirebaseAuthException catch (e) {
       String message;

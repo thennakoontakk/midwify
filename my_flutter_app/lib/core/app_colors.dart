@@ -44,4 +44,16 @@ class AppColors {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
   );
+
+  // Dashboard colors
+  static const Color danger = Color(0xFFEF4444);
+  static const Color dangerLight = Color(0xFFFEE2E2);
+  static const Color info = Color(0xFF3B82F6);
+  static const Color infoLight = Color(0xFFDBEAFE);
+  static const Color success = Color(0xFF10B981);
+  static const Color successLight = Color(0xFFD1FAE5);
+  static const Color warning = Color(0xFFF59E0B);
+  static const Color warningLight = Color(0xFFFEF3C7);
+  static const Color cardBackground = Color(0xFFFFFFFF);
+  static const Color scaffoldBackground = Color(0xFFF5F5F5);
 }
