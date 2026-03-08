@@ -37,3 +37,13 @@ my_flutter_app/.pub/
 my_flutter_app/build/
 *.iml
 .metadata
+
+# Python / Backend
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# Root-level model file (duplicate — kept in backend/)
+/fetal_health_model.pkl

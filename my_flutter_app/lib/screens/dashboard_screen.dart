@@ -246,7 +246,18 @@ class DashboardScreen extends StatelessWidget {
               _DrawerItem(
                 icon: Icons.monitor_heart_outlined,
                 label: 'Fetal Health Scan',
-                onTap: () => Navigator.pop(context),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/fetal-health');
+                },
+              ),
+              _DrawerItem(
+                icon: Icons.dashboard_rounded,
+                label: 'Fetal Dashboard',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/fetal-health-dashboard');
+                },
               ),
 
               const SizedBox(height: 16),

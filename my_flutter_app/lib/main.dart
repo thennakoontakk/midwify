@@ -8,12 +8,22 @@ import 'screens/dashboard_screen.dart';
 import 'screens/patients_screen.dart';
 import 'screens/patient_form_screen.dart';
 import 'screens/patient_detail_screen.dart';
+import 'screens/fetal_health_patient_select_screen.dart';
+import 'screens/fetal_health_form_screen.dart';
+import 'screens/fetal_health_result_screen.dart';
+import 'screens/fetal_health_history_screen.dart';
+import 'screens/fetal_health_dashboard_screen.dart';
+import 'services/offline_model_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Pre-load the offline RF model for fast predictions
+  await OfflineModelService.loadModel();
+
   runApp(const MidwifyApp());
 }
 
@@ -38,8 +48,17 @@ class MidwifyApp extends StatelessWidget {
         '/patients': (context) => const PatientsScreen(),
         '/patient-form': (context) => const PatientFormScreen(),
         '/patient-detail': (context) => const PatientDetailScreen(),
+        // Fetal Health Assessment routes
+        '/fetal-health': (context) =>
+            const FetalHealthPatientSelectScreen(),
+        '/fetal-health-form': (context) => const FetalHealthFormScreen(),
+        '/fetal-health-result': (context) =>
+            const FetalHealthResultScreen(),
+        '/fetal-health-history': (context) =>
+            const FetalHealthHistoryScreen(),
+        '/fetal-health-dashboard': (context) =>
+            const FetalHealthDashboardScreen(),
       },
     );
   }
 }
-
