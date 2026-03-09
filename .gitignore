@@ -47,3 +47,10 @@ venv/
 
 # Root-level model file (duplicate — kept in backend/)
 /fetal_health_model.pkl
+
+# Firebase service account key (SENSITIVE — never commit!)
+*serviceAccountKey*.json
+*firebase-adminsdk*.json
+
+# Backend node_modules
+backend/node_modules/

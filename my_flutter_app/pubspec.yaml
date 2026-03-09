@@ -38,6 +38,12 @@ dependencies:
   firebase_auth: ^5.5.1
   cloud_firestore: ^5.6.5
   http: ^1.2.1
+  fl_chart: ^0.69.2
+  camera: ^0.11.0+1
+  tflite_flutter: ^0.12.1
+  image: ^4.1.3
+  path_provider: ^2.1.2
+  image_picker: 1.1.2
 
 dev_dependencies:
   flutter_test:
@@ -62,6 +68,9 @@ flutter:
 
   assets:
     - assets/fetal_health_rf_model.json
+    - assets/maternal_risk_rf_model.json
+    - assets/models/cranial_analysis.tflite
+    - assets/models/posture_analysis.tflite
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -41,7 +41,7 @@ class FetalHealthService {
   // For Chrome/web: use http://localhost:5000
   // For Android emulator: use http://10.0.2.2:5000
   // For physical device: use your PC's local IP e.g. http://192.168.x.x:5000
-  static const String _baseUrl = 'http://localhost:5000';
+  static const String _baseUrl = 'http://192.168.8.176:5000';
 
   /// Feature names in the correct order.
   static const List<String> featureNames = [

@@ -104,22 +104,77 @@ def get_xai_reasons(features_dict, prediction, top_n=5):
     return reasons
 
 
+# ── Maternal Health Model Configuration ────────────────────────────────
+MATERNAL_FEATURE_NAMES = [
+    'Age',
+    'SystolicBP',
+    'DiastolicBP',
+    'BS',
+    'BodyTemp',
+    'HeartRate'
+]
+
+MATERNAL_CLINICAL_LABELS = {
+    'Age': 'Maternal Age Extent',
+    'SystolicBP': 'Abnormal Systolic Blood Pressure',
+    'DiastolicBP': 'Abnormal Diastolic Blood Pressure',
+    'BS': 'Abnormal Blood Sugar Level',
+    'BodyTemp': 'Abnormal Body Temperature',
+    'HeartRate': 'Abnormal Heart Rate'
+}
+
+MATERNAL_PREDICTION_LABELS = {
+    'low risk': 1, 'mid risk': 3, 'high risk': 6, # If model outputs strings
+    1: 'Low Risk', 3: 'Mid Risk', 6: 'High Risk'  # If model outputs 1,3,6
+}
+# A lot of maternal datasets use strings 'low risk', 'mid risk', 'high risk'
+# Some use ints. We'll handle both.
+
+# Try loading maternal model, but allow server to run if not possible
+MATERNAL_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'maternal_risk_model.pkl')
+try:
+    with open(MATERNAL_MODEL_PATH, 'rb') as f:
+        maternal_model = pickle.load(f)
+    maternal_feature_importances = dict(zip(MATERNAL_FEATURE_NAMES, maternal_model.feature_importances_))
+except Exception as e:
+    maternal_model = None
+    maternal_feature_importances = {}
+    print(f'⚠️ Warning: Could not load maternal model: {e}')
+
+
+def get_maternal_xai_reasons(features_dict, prediction_label, top_n=3):
+    """Generate explainable AI reasons for Maternal predictions."""
+    if isinstance(prediction_label, str):
+        label_str = prediction_label.lower()
+    else:
+        label_str = MATERNAL_PREDICTION_LABELS.get(prediction_label, '').lower()
+        
+    if 'low' in label_str:
+        return []
+
+    sorted_features = sorted(
+        maternal_feature_importances.items(), key=lambda x: x[1], reverse=True
+    )
+
+    reasons = []
+    for feat_name, importance in sorted_features:
+        if len(reasons) >= top_n: break
+        if importance > 0.05:
+            reasons.append({
+                'feature': feat_name,
+                'value': features_dict.get(feat_name, 0),
+                'importance': round(importance, 4),
+                'description': MATERNAL_CLINICAL_LABELS.get(feat_name, feat_name),
+            })
+    return reasons
+
+
 @app.route('/predict', methods=['POST'])
 def predict():
-    """
-    Predict fetal health from 21 CTG parameters.
-
-    Request JSON:
-        { "features": [120.0, 0.0, 0.0, ...] }  (21 float values)
-
-    Response JSON:
-        {
-            "prediction": 2,
-            "label": "Suspect",
-            "confidence": 0.87,
-            "xai_reasons": [ { "feature": "...", "description": "...", ... } ]
-        }
-    """
+    """Predict fetal health from 21 CTG parameters."""
+    if model is None:
+        return jsonify({'error': 'Fetal health model not loaded'}), 503
+        
     try:
         data = request.get_json(force=True)
         features_list = data.get('features', [])
@@ -129,18 +184,12 @@ def predict():
                 'error': f'Expected 21 features, got {len(features_list)}'
             }), 400
 
-        # Build feature array
         X = np.array(features_list, dtype=float).reshape(1, -1)
-
-        # Predict
         prediction = int(model.predict(X)[0])
         probabilities = model.predict_proba(X)[0]
         confidence = float(max(probabilities))
 
-        # Map features to dict for XAI
         features_dict = dict(zip(FEATURE_NAMES, features_list))
-
-        # Generate XAI reasons
         xai_reasons = get_xai_reasons(features_dict, prediction)
 
         return jsonify({
@@ -149,19 +198,62 @@ def predict():
             'confidence': round(confidence, 4),
             'xai_reasons': xai_reasons,
         })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
+
+@app.route('/predict-maternal', methods=['POST'])
+def predict_maternal():
+    """
+    Predict maternal health risk from 6 parameters.
+    Request JSON: { "features": [Age, SystolicBP, DiastolicBP, BS, BodyTemp, HeartRate] }
+    """
+    if maternal_model is None:
+        return jsonify({'error': 'Maternal risk model not loaded natively due to python version mismatch.'}), 503
+        
+    try:
+        data = request.get_json(force=True)
+        features_list = data.get('features', [])
+
+        if len(features_list) != 6:
+            return jsonify({'error': f'Expected 6 features, got {len(features_list)}'}), 400
+
+        X = np.array(features_list, dtype=float).reshape(1, -1)
+        raw_pred = maternal_model.predict(X)[0]
+        probabilities = maternal_model.predict_proba(X)[0]
+        confidence = float(max(probabilities))
+
+        features_dict = dict(zip(MATERNAL_FEATURE_NAMES, features_list))
+        xai_reasons = get_maternal_xai_reasons(features_dict, raw_pred)
+
+        # Map prediction to standardized numeric format (1=Low, 3=Mid, 6=High)
+        if isinstance(raw_pred, str):
+            label = raw_pred.title()
+            pred_score = MATERNAL_PREDICTION_LABELS.get(raw_pred.lower(), 1)
+        else:
+            pred_score = int(raw_pred)
+            label = MATERNAL_PREDICTION_LABELS.get(pred_score, 'Unknown')
+
+        return jsonify({
+            'prediction': pred_score,
+            'label': label,
+            'confidence': round(confidence, 4),
+            'xai_reasons': xai_reasons,
+        })
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
 
 @app.route('/health', methods=['GET'])
 def health():
-    """Health check endpoint."""
-    return jsonify({'status': 'ok', 'model_loaded': model is not None})
-
+    return jsonify({
+        'status': 'ok', 
+        'fetal_model_loaded': model is not None,
+        'maternal_model_loaded': maternal_model is not None
+    })
 
 if __name__ == '__main__':
-    print('🏥 Midwify Fetal Health Prediction API')
-    print(f'📦 Model loaded from: {MODEL_PATH}')
-    print(f'🔧 Features: {len(FEATURE_NAMES)}')
+    print('🏥 Midwify Predictive APIs')
+    print(f'📦 Fetal Model loaded: {model is not None}')
+    print(f'📦 Maternal Model loaded: {maternal_model is not None}')
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -1,5 +1,5 @@
 import "./style.css";
-import { renderDashboard } from "./pages/dashboard";
+import { renderDashboard, initDashboard } from "./pages/dashboard";
 import { renderMidwives, initMidwivesPage } from "./pages/midwives";
 
 // Router state
@@ -24,6 +24,7 @@ function navigateTo(page: string) {
     case "dashboard":
       container.innerHTML = renderDashboard();
       if (pageTitle) pageTitle.textContent = "Dashboard";
+      initDashboard();
       break;
     case "midwives":
       container.innerHTML = renderMidwives();
@@ -33,6 +34,7 @@ function navigateTo(page: string) {
     default:
       container.innerHTML = renderDashboard();
       if (pageTitle) pageTitle.textContent = "Dashboard";
+      initDashboard();
   }
 
   // Close mobile sidebar

@@ -62,7 +62,9 @@
 }
 
 /* ── Reset & Base ── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
@@ -339,75 +341,243 @@ body {
   padding: 28px;
 }
 
-/* ── Dashboard ── */
-.dashboard-page {
+/* ── Dashboard Analytics ── */
+.dashboard-analytics {
+  animation: fadeUp 0.4s ease-out;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - var(--topbar-height) - 56px);
+  flex-direction: column;
+  gap: 24px;
 }
 
-.welcome-card {
-  text-align: center;
-  max-width: 460px;
-  padding: 48px;
+/* Stat Cards */
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.stat-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  animation: fadeUp 0.5s ease-out;
+  border-radius: var(--radius-lg);
+  padding: 22px 24px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
 }
 
-.welcome-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: var(--primary-subtle);
+.stat-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.stat-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.stat-card:hover::before {
+  opacity: 1;
+}
+
+.stat-card:nth-child(1)::before {
+  background: var(--primary);
+}
+
+.stat-card:nth-child(2)::before {
+  background: var(--info);
+}
+
+.stat-card:nth-child(3)::before {
+  background: var(--error);
+}
+
+.stat-card:nth-child(4)::before {
+  background: var(--success);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 24px;
+  flex-shrink: 0;
 }
 
-.welcome-icon .material-icons-round {
-  font-size: 36px;
+.stat-icon .material-icons-round {
+  font-size: 24px;
+}
+
+.stat-icon-primary {
+  background: rgba(233, 30, 123, 0.12);
   color: var(--primary);
 }
 
-.welcome-card h2 {
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 8px;
+.stat-icon-primary .material-icons-round {
+  color: var(--primary);
+}
+
+.stat-icon-info {
+  background: rgba(96, 165, 250, 0.12);
+}
+
+.stat-icon-info .material-icons-round {
+  color: var(--info);
+}
+
+.stat-icon-danger {
+  background: rgba(248, 113, 113, 0.12);
+}
+
+.stat-icon-danger .material-icons-round {
+  color: var(--error);
+}
+
+.stat-icon-success {
+  background: rgba(52, 211, 153, 0.12);
+}
+
+.stat-icon-success .material-icons-round {
+  color: var(--success);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 28px;
+  font-weight: 800;
   color: var(--text-primary);
+  letter-spacing: -1px;
+  line-height: 1.1;
 }
 
-.welcome-card > p {
-  color: var(--text-secondary);
-  font-size: 14px;
-  margin-bottom: 28px;
+.stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.stats-hint {
-  margin-top: 8px;
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
 }
 
-.hint-card {
+.chart-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: border-color var(--transition-fast);
+}
+
+.chart-card:hover {
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.chart-header {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 14px 18px;
-  background: var(--bg-elevated);
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  font-size: 13px;
+  justify-content: space-between;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-light);
 }
 
-.hint-card .material-icons-round {
+.chart-header h4 {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  letter-spacing: -0.2px;
+}
+
+.chart-badge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
   color: var(--primary);
-  font-size: 20px;
+  background: var(--primary-subtle);
+  padding: 4px 10px;
+  border-radius: 100px;
 }
 
-.hint-card strong {
-  color: var(--primary-light);
+.chart-body {
+  padding: 20px;
+  height: 280px;
+  position: relative;
+}
+
+.chart-body-doughnut {
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Recent Patients */
+.recent-card {
+  margin-top: 0;
+}
+
+.recent-table-wrap {
+  overflow-x: auto;
+}
+
+/* Risk Level Badges */
+.badge-risk-low {
+  background: rgba(52, 211, 153, 0.12);
+  color: #34d399;
+}
+
+.badge-risk-medium {
+  background: rgba(251, 191, 36, 0.12);
+  color: #fbbf24;
+}
+
+.badge-risk-high {
+  background: rgba(248, 113, 113, 0.12);
+  color: #f87171;
+}
+
+/* Dashboard Responsive */
+@media (max-width: 1200px) {
+  .dash-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-body {
+    height: 240px;
+  }
 }
 
 /* ── Midwives Page ── */
@@ -767,7 +937,7 @@ body {
 .spinner-sm {
   width: 18px;
   height: 18px;
-  border: 2px solid rgba(255,255,255,0.3);
+  border: 2px solid rgba(255, 255, 255, 0.3);
   border-top-color: white;
   border-radius: 50%;
   animation: spin 0.7s linear infinite;
@@ -1077,6 +1247,7 @@ body {
     opacity: 0;
     transform: translateY(16px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -1172,6 +1343,7 @@ body {
 }
 
 @media (max-width: 480px) {
+
   .data-table th:nth-child(3),
   .data-table td:nth-child(3),
   .data-table th:nth-child(4),

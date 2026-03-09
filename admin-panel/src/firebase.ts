@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth } from "firebase/auth";
+import { getAuth, signInAnonymously } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,4 +15,10 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+
+// Sign in anonymously so the admin panel can read Firestore
+export const authReady = signInAnonymously(auth)
+  .then(() => console.log("✅ Signed in anonymously for admin reads"))
+  .catch((err) => console.warn("⚠️ Anonymous auth failed:", err.message));
+
 export default app;

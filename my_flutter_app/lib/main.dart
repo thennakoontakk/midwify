@@ -13,7 +13,11 @@ import 'screens/fetal_health_form_screen.dart';
 import 'screens/fetal_health_result_screen.dart';
 import 'screens/fetal_health_history_screen.dart';
 import 'screens/fetal_health_dashboard_screen.dart';
+import 'screens/maternal_health_form_screen.dart';
+import 'screens/maternal_health_result_screen.dart';
+import 'screens/ar_capture/ar_capture_main_screen.dart';
 import 'services/offline_model_service.dart';
+import 'services/offline_maternal_model_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -21,8 +25,9 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  // Pre-load the offline RF model for fast predictions
+  // Pre-load the offline RF models for fast predictions
   await OfflineModelService.loadModel();
+  await OfflineMaternalModelService.loadModel();
 
   runApp(const MidwifyApp());
 }
@@ -58,6 +63,13 @@ class MidwifyApp extends StatelessWidget {
             const FetalHealthHistoryScreen(),
         '/fetal-health-dashboard': (context) =>
             const FetalHealthDashboardScreen(),
+        // Maternal Risk Analysis routes
+        '/maternal-health': (context) =>
+            const MaternalHealthFormScreen(),
+        '/maternal-health-result': (context) =>
+            const MaternalHealthResultScreen(),
+        // AR Capture Features
+        '/ar-capture': (context) => const ARCaptureMainScreen(),
       },
     );
   }
