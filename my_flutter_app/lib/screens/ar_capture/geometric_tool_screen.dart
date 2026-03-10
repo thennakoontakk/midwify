@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'ar_capture_models.dart'; // AppLanguage
+import '../../core/app_colors.dart';
 
 class GeometricToolScreen extends StatelessWidget {
   final AppLanguage language;
@@ -36,7 +37,7 @@ class GeometricToolScreen extends StatelessWidget {
         children: [
           Text(t['title']!, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
           const SizedBox(height: 8),
-          Text(t['instruction']!, style: const TextStyle(fontSize: 14, color: Colors.white70), textAlign: TextAlign.center),
+          Text(t['instruction']!, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary), textAlign: TextAlign.center),
           
           const SizedBox(height: 16),
           
@@ -44,7 +45,7 @@ class GeometricToolScreen extends StatelessWidget {
           Expanded(
             child: Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.blueAccent, width: 2),
+                border: Border.all(color: AppColors.primary, width: 2),
                 borderRadius: BorderRadius.circular(16),
                 image: const DecorationImage(
                   // Placeholder representing baby capture background
@@ -65,7 +66,7 @@ class GeometricToolScreen extends StatelessWidget {
                   Center(
                     child: Transform.rotate(
                       angle: -0.139626, // -8 degrees in rad
-                      child: Container(width: double.infinity, height: 2, color: Colors.blueAccent),
+                      child: Container(width: double.infinity, height: 2, color: AppColors.primary),
                     ),
                   ),
                   
@@ -77,9 +78,9 @@ class GeometricToolScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: Colors.black87,
+                        color: AppColors.white.withOpacity(0.9),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white10),
+                        border: Border.all(color: AppColors.primaryLight),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,7 +114,7 @@ class GeometricToolScreen extends StatelessWidget {
               icon: const Icon(Icons.check_box, color: Colors.white),
               label: Text(t['confirm']!, style: const TextStyle(fontSize: 16, color: Colors.white)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blueAccent,
+                backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
               ),

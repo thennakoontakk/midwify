@@ -1,9 +1,58 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/app_colors.dart';
 import '../services/maternal_health_service.dart';
 
-class MaternalHealthResultScreen extends StatelessWidget {
+class MaternalHealthResultScreen extends StatefulWidget {
   const MaternalHealthResultScreen({super.key});
+
+  @override
+  State<MaternalHealthResultScreen> createState() => _MaternalHealthResultScreenState();
+}
+
+class _MaternalHealthResultScreenState extends State<MaternalHealthResultScreen> {
+  bool _isSaving = false;
+  bool _isSaved = false;
+
+  Future<void> _saveReport(Map<String, dynamic> args) async {
+    setState(() => _isSaving = true);
+
+    try {
+      final midwifeId = FirebaseAuth.instance.currentUser?.uid ?? '';
+      final assessment = MaternalHealthAssessment(
+        patientId: args['patientId'],
+        patientName: args['patientName'],
+        midwifeId: midwifeId,
+        vitals: args['vitals'],
+        result: args['result'],
+      );
+
+      await MaternalHealthService.saveAssessment(assessment);
+
+      setState(() {
+        _isSaving = false;
+        _isSaved = true;
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Report saved successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      setState(() => _isSaving = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Failed to save report: $e'),
+          backgroundColor: AppColors.danger,
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +67,11 @@ class MaternalHealthResultScreen extends StatelessWidget {
 
     Color headerColor;
     if (result.predictionScore >= 6) {
-      headerColor = const Color(0xFFE63900); // Dark Orange/Red (as in Image 3)
+      headerColor = const Color(0xFFE63900); // Dark Orange/Red
     } else if (result.predictionScore >= 3) {
       headerColor = AppColors.warning;
     } else {
-      headerColor = const Color(0xFF00C853); // Bright Green (as in Image 2)
+      headerColor = const Color(0xFF00C853); // Bright Green
     }
 
     Color bgColor = isLowRisk ? const Color(0xFFF0FFF0) : const Color(0xFFFFF0EC);
@@ -33,8 +82,8 @@ class MaternalHealthResultScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu, color: AppColors.textPrimary),
-          onPressed: () => Scaffold.of(context).openDrawer(),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
           'Midwify',
@@ -44,30 +93,12 @@ class MaternalHealthResultScreen extends StatelessWidget {
             fontWeight: FontWeight.w700,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.primary),
-            onPressed: () {}, // Handled by standard layout Usually
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            GestureDetector(
-              onTap: () => Navigator.pop(context),
-              child: const Row(
-                children: [
-                  Icon(Icons.arrow_back, size: 20, color: AppColors.textSecondary),
-                  SizedBox(width: 8),
-                  Text('Back', style: TextStyle(color: AppColors.textSecondary, fontSize: 16)),
-                ],
-              ),
-            ),
-            const SizedBox(height: 24),
-
             // Main Card
             Container(
               decoration: BoxDecoration(
@@ -189,19 +220,43 @@ class MaternalHealthResultScreen extends StatelessWidget {
                         ..._buildRecommendations(result.predictionScore),
 
                         const SizedBox(height: 32),
+                        
+                        // Action Buttons
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton.icon(
+                                onPressed: (_isSaving || _isSaved) ? null : () => _saveReport(args),
+                                icon: _isSaving 
+                                  ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                                  : Icon(_isSaved ? Icons.check : Icons.save_alt),
+                                label: Text(_isSaved ? 'Saved' : _isSaving ? 'Saving...' : 'Save Report'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AppColors.primary,
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(vertical: 16),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  elevation: 0,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        
+                        const SizedBox(height: 24),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               result.isOffline ? 'AI Model: Local ML Heuristic' : 'AI Model: Cloud ML Pipeline',
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppColors.grey500,
                                 fontSize: 12,
                               ),
                             ),
                             Text(
                               _formatTime(DateTime.now()),
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: AppColors.grey500,
                                 fontSize: 12,
                               ),

@@ -124,12 +124,24 @@ class Interpreter {
     return MockTensor();
   }
 
+  dynamic getInputTensor(int index) {
+    return MockTensor();
+  }
+
   void close() {
     debugPrint('Web: TensorFlow.js model closed');
     // In real implementation: _model?.dispose();
   }
 }
 
+enum TensorType {
+  float32,
+  int32,
+  uint8,
+  int8,
+}
+
 class MockTensor {
-  List<int> get shape => [1, 2]; // Binary classification output
+  List<int> get shape => [1, 224, 224, 3]; 
+  TensorType get type => TensorType.float32;
 }

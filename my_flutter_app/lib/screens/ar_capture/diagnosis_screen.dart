@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'ar_capture_models.dart'; // AppMode, AppLanguage
+import 'ar_capture_models.dart';
+import '../../core/app_colors.dart';
 
 class DiagnosisScreen extends StatelessWidget {
   final AppMode mode;
@@ -77,15 +78,17 @@ class DiagnosisScreen extends StatelessWidget {
       stateText = t['abnormalText']!;
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
+    return Container(
+      color: AppColors.scaffoldBackground,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
           // Header
-          Text(t['title']!, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+          Text(t['title']!, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary), textAlign: TextAlign.center),
           const SizedBox(height: 8),
-          Text(t['modelKey']!, style: const TextStyle(fontSize: 14, color: Colors.white70), textAlign: TextAlign.center),
+          Text(t['modelKey']!, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary), textAlign: TextAlign.center),
           
           Expanded(
             child: Column(
@@ -122,9 +125,16 @@ class DiagnosisScreen extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1e293b).withOpacity(0.8),
+                    color: AppColors.white,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(color: AppColors.primaryLight),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
@@ -133,7 +143,7 @@ class DiagnosisScreen extends StatelessWidget {
                       Expanded(
                         child: Text(
                           stateText,
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: Colors.white),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
                         ),
                       ),
                     ],
@@ -147,8 +157,9 @@ class DiagnosisScreen extends StatelessWidget {
           ..._buildActionButtons(state, t),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   List<Widget> _buildActionButtons(String state, Map<String, String> t) {
     if (state == 'normal') {
@@ -169,7 +180,7 @@ class DiagnosisScreen extends StatelessWidget {
         ];
       } else {
         return [
-          _buildPrimaryButton(icon: Icons.refresh, label: t['btnRetake']!, onPressed: onRetake, color: Colors.indigo),
+          _buildPrimaryButton(icon: Icons.refresh, label: t['btnRetake']!, onPressed: onRetake, color: AppColors.primary),
           const SizedBox(height: 12),
           _buildSecondaryButton(icon: Icons.home, label: t['btnHome']!, onPressed: onFinish),
         ];
@@ -195,11 +206,11 @@ class DiagnosisScreen extends StatelessWidget {
   Widget _buildSecondaryButton({required IconData icon, required String label, required VoidCallback onPressed}) {
     return OutlinedButton.icon(
       onPressed: onPressed,
-      icon: Icon(icon, color: Colors.white),
-      label: Text(label, style: const TextStyle(fontSize: 16, color: Colors.white)),
+      icon: Icon(icon, color: AppColors.primary),
+      label: Text(label, style: const TextStyle(fontSize: 16, color: AppColors.primary)),
       style: OutlinedButton.styleFrom(
         padding: const EdgeInsets.symmetric(vertical: 16),
-        side: const BorderSide(color: Colors.white30),
+        side: const BorderSide(color: AppColors.primary),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       ),
     );

@@ -64,15 +64,61 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return data;
       }).toList();
 
+      // Get all assessments for this midwife to determine current risks
+      final fetalSnapshot = await FirebaseFirestore.instance
+          .collection('fetal_assessments')
+          .where('midwifeId', isEqualTo: user.uid)
+          .get();
+      
+      final maternalSnapshot = await FirebaseFirestore.instance
+          .collection('maternal_assessments')
+          .where('midwifeId', isEqualTo: user.uid)
+          .get();
+
+      // Map to store latest risk per patient
+      // Key: patientId, Value: {risk: 'low'|'medium'|'high', time: Timestamp}
+      Map<String, Map<String, dynamic>> latestRisks = {};
+
+      void processAssessment(QueryDocumentSnapshot doc, {bool isMaternal = false}) {
+        final data = doc.data() as Map<String, dynamic>;
+        final pId = data['patientId'] as String?;
+        final time = data['createdAt'] as Timestamp?;
+        if (pId == null || time == null) return;
+
+        String risk = 'low';
+        if (isMaternal) {
+          final score = (data['result']?['predictionScore'] ?? 1) as int;
+          if (score >= 6) risk = 'high';
+          else if (score >= 3) risk = 'medium';
+        } else {
+          final pred = (data['prediction'] ?? 1) as int;
+          if (pred == 3) risk = 'high';
+          else if (pred == 2) risk = 'medium';
+        }
+
+        if (!latestRisks.containsKey(pId) || 
+            time.compareTo(latestRisks[pId]!['time']) > 0) {
+          latestRisks[pId] = {'risk': risk, 'time': time};
+        }
+      }
+
+      for (var doc in fetalSnapshot.docs) processAssessment(doc);
+      for (var doc in maternalSnapshot.docs) processAssessment(doc, isMaternal: true);
+
       // Compute stats
       int high = 0, medium = 0, low = 0, active = 0;
       int t1 = 0, t2 = 0, t3 = 0;
       double totalGW = 0;
 
       for (final p in patients) {
-        final risk = p['riskLevel'] ?? 'low';
-        if (risk == 'high') high++;
-        else if (risk == 'medium') medium++;
+        final pId = p['id'];
+        final calculatedRisk = latestRisks[pId]?['risk'] ?? 'low';
+        
+        // Update patient map so UI (Recent Patients) shows calculated risk
+        p['riskLevel'] = calculatedRisk;
+
+        if (calculatedRisk == 'high') high++;
+        else if (calculatedRisk == 'medium') medium++;
         else low++;
 
         if (p['status'] == 'active') active++;
@@ -789,6 +835,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Navigator.pushNamed(context, '/ar-capture');
                 },
               ),
+              const SizedBox(height: 16),
+              _DrawerItem(
+                icon: Icons.view_in_ar_outlined,
+                label: 'VR Training',
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(context, '/vr-training');
+                },
+              ),
               const Spacer(),
               Container(
                 decoration: BoxDecoration(
@@ -799,7 +854,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   icon: Icons.settings_outlined,
                   label: 'Settings',
                   isHighlighted: true,
-                  onTap: () => Navigator.pop(context),
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.pushNamed(context, '/profile').then((updated) {
+                      if (updated == true) {
+                        _loadData(); // Refresh name if changed
+                      }
+                    });
+                  },
                 ),
               ),
             ],

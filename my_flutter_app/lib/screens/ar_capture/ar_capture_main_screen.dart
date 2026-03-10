@@ -7,8 +7,7 @@ import 'posture_capture_screen.dart';
 import 'diagnosis_screen.dart';
 import 'geometric_tool_screen.dart';
 import '../../services/ar_capture/ml_service.dart';
-
-import '../../services/ar_capture/ml_service.dart';
+import '../../core/app_colors.dart';
 import 'ar_capture_models.dart';
 
 class ARCaptureMainScreen extends StatefulWidget {
@@ -140,11 +139,21 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
     }[_language]!;
 
     return Scaffold(
+      backgroundColor: AppColors.scaffoldBackground,
       appBar: AppBar(
-        title: Text(t['title']!),
-        backgroundColor: const Color(0xFF1e1b4b),
+        title: Text(
+          t['title']!,
+          style: const TextStyle(
+            color: AppColors.textPrimary,
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        surfaceTintColor: Colors.transparent,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: _handleBack,
         ),
         actions: [
@@ -164,8 +173,11 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
                           ? AppLanguage.si : AppLanguage.en);
                     },
                     child: Text(
-                        _language == AppLanguage.en ? 'සිං' : 'EN',
-                        style: const TextStyle(color: Colors.white70)
+                      _language == AppLanguage.en ? 'සිං' : 'EN',
+                      style: const TextStyle(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   )
                 ],

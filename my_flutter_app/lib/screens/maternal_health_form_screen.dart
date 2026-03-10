@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart'; // Add for HapticFeedback
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../core/app_colors.dart';
@@ -83,7 +84,6 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
   }
 
   void _voiceFillDummy() {
-    // Simulate voice dictation for quick testing matching the UI
     setState(() {
       _ageController.text = '25';
       _sysBpController.text = '120';
@@ -117,6 +117,11 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
 
       final result = await MaternalHealthService.predict(features);
 
+      // Trigger Haptic Feedback if risk is not low
+      if (result.predictionScore >= 3) {
+        await HapticFeedback.vibrate();
+      }
+
       if (!mounted) return;
 
       Navigator.pushNamed(
@@ -126,6 +131,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
           'patientName': _selectedPatientName,
           'patientId': _selectedPatientId,
           'result': result,
+          'vitals': features,
         },
       );
     } catch (e) {
@@ -164,12 +170,6 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
             fontWeight: FontWeight.w700,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout_rounded, color: AppColors.primary),
-            onPressed: () {}, // Handled by standard layout Usually
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
@@ -192,7 +192,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                   icon: const Icon(Icons.mic, size: 18),
                   label: const Text('Voice Fill'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE91E7B), // Hot pink
+                    backgroundColor: const Color(0xFFE91E7B),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(
@@ -240,7 +240,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                             children: [
                               _buildLabel('SystolicBP', Icons.monitor_heart_outlined, color: Colors.red),
                               const SizedBox(height: 8),
-                              _buildTextField(_sysBpController, 'Upper value of Blood Pressure in mmHg', TextInputType.number),
+                              _buildTextField(_sysBpController, 'mmHg', TextInputType.number),
                             ],
                           ),
                         ),
@@ -251,7 +251,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                             children: [
                               _buildLabel('DiastolicBP', Icons.show_chart, color: Colors.blue),
                               const SizedBox(height: 8),
-                              _buildTextField(_diaBpController, 'Lower value of Blood Pressure in mmHg', TextInputType.number),
+                              _buildTextField(_diaBpController, 'mmHg', TextInputType.number),
                             ],
                           ),
                         ),
@@ -267,7 +267,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                             children: [
                               _buildLabel('HeartRate', Icons.favorite_border, color: const Color(0xFFE91E7B)),
                               const SizedBox(height: 8),
-                              _buildTextField(_hrController, 'A normal resting heart rate in beats per minute.', TextInputType.number),
+                              _buildTextField(_hrController, 'bpm', TextInputType.number),
                             ],
                           ),
                         ),
@@ -288,7 +288,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
 
                     _buildLabel('BS', Icons.water_drop_outlined, color: Colors.purple[300]),
                     const SizedBox(height: 8),
-                    _buildTextField(_bsController, 'Blood glucose levels is in terms of a molar concentration, mmol/L', const TextInputType.numberWithOptions(decimal: true)),
+                    _buildTextField(_bsController, 'mmol/L', const TextInputType.numberWithOptions(decimal: true)),
                     const SizedBox(height: 32),
 
                     Row(
@@ -296,7 +296,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                         Expanded(
                           child: OutlinedButton.icon(
                             onPressed: _clearForm,
-                            icon: const Icon(Icons.show_chart),
+                            icon: const Icon(Icons.refresh),
                             label: const Text('Clear'),
                             style: OutlinedButton.styleFrom(
                               foregroundColor: AppColors.textSecondary,
@@ -317,7 +317,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                                 : const Icon(Icons.monitor_heart),
                             label: Text(_isAnalyzing ? 'Analyzing...' : 'Analyze Risk'),
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFE91E7B), // Hot pink
+                              backgroundColor: const Color(0xFFE91E7B),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -432,9 +432,14 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
         );
       }).toList(),
       onChanged: (val) {
+        final selected = _patients.firstWhere((p) => p['id'] == val);
         setState(() {
           _selectedPatientId = val;
-          _selectedPatientName = _patients.firstWhere((p) => p['id'] == val)['fullName'];
+          _selectedPatientName = selected['fullName'];
+          // Auto-fill age
+          if (selected['age'] != null) {
+            _ageController.text = selected['age'].toString();
+          }
         });
       },
     );

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'ar_capture_models.dart'; // To access AppMode, AppLanguage
+import 'ar_capture_models.dart';
+import '../../core/app_colors.dart';
 
 class ModeSelectionScreen extends StatelessWidget {
   final AppLanguage language;
@@ -39,13 +40,20 @@ class ModeSelectionScreen extends StatelessWidget {
         children: [
           Text(
             t['selectMode']!,
-            style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 8),
           Text(
             t['desc']!,
-            style: const TextStyle(fontSize: 16, color: Colors.white70),
+            style: const TextStyle(
+              fontSize: 16,
+              color: AppColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 40),
@@ -73,7 +81,7 @@ class ModeSelectionScreen extends StatelessWidget {
           const Spacer(),
           const Text(
             "Version 1.0.0 (Offline Mode Active)",
-            style: TextStyle(color: Colors.white38, fontSize: 12),
+            style: TextStyle(color: AppColors.textMuted, fontSize: 12),
           ),
         ],
       ),
@@ -91,33 +99,37 @@ class ModeSelectionScreen extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: const Color(0xFF1e293b).withOpacity(0.7),
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.white10),
+          border: Border.all(color: AppColors.primaryLight),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
+              color: Colors.black.withOpacity(0.04),
               blurRadius: 10,
-              offset: const Offset(0, 4),
+              offset: const Offset(0, 2),
             )
           ],
         ),
         child: Column(
           children: [
-            Icon(icon, size: 60, color: const Color(0xFF818cf8)),
+            Icon(icon, size: 60, color: AppColors.primary),
             const SizedBox(height: 16),
             Text(
               title,
               style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF818cf8)),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: AppColors.primary,
+              ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 8),
             Text(
               desc,
-              style: const TextStyle(fontSize: 12, color: Colors.white70),
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
               textAlign: TextAlign.center,
             ),
           ],

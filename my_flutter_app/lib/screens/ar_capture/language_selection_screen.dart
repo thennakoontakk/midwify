@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'ar_capture_models.dart'; // To access AppLanguage
+import 'ar_capture_models.dart';
+import '../../core/app_colors.dart';
 
 class LanguageSelectionScreen extends StatelessWidget {
   final ValueChanged<AppLanguage> onLanguageSelected;
@@ -18,7 +19,7 @@ class LanguageSelectionScreen extends StatelessWidget {
           const Icon(
             Icons.language,
             size: 80,
-            color: Color(0xFF6366f1),
+            color: AppColors.primary,
           ),
           const SizedBox(height: 24),
           const Text(
@@ -26,7 +27,7 @@ class LanguageSelectionScreen extends StatelessWidget {
             style: TextStyle(
               fontSize: 28,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -35,7 +36,7 @@ class LanguageSelectionScreen extends StatelessWidget {
             'Select your language\nඔබගේ භාෂාව තෝරන්න',
             style: TextStyle(
               fontSize: 16,
-              color: Colors.white70,
+              color: AppColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -68,14 +69,14 @@ class LanguageSelectionScreen extends StatelessWidget {
         width: 250,
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
         decoration: BoxDecoration(
-          color: const Color(0xFF1e293b).withOpacity(0.7),
+          color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white10),
+          border: Border.all(color: AppColors.primaryLight),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
             ),
           ],
         ),
@@ -86,7 +87,7 @@ class LanguageSelectionScreen extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF818cf8),
+                color: AppColors.primary,
               ),
             ),
             const SizedBox(height: 4),
@@ -94,7 +95,7 @@ class LanguageSelectionScreen extends StatelessWidget {
               subtitle,
               style: const TextStyle(
                 fontSize: 12,
-                color: Colors.white70,
+                color: AppColors.textSecondary,
               ),
             ),
           ],

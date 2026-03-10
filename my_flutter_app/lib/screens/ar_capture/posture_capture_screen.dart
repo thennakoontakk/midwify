@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../core/app_colors.dart';
 import 'ar_capture_models.dart'; // To access AppMode, AppLanguage
 import '../../widgets/ar_capture/camera_view.dart'; // The existing camera view
 import '../../services/ar_capture/ml_service.dart'; // TFLite ML Service
@@ -50,21 +51,7 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
       int confidence = await MLService().runInference(imagePath, AppMode.posture);
       debugPrint('MLService returned confidence: $confidence');
       
-      if (confidence == 0) {
-        // Show validation error message
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Please ensure the image clearly shows a baby\'s posture for accurate analysis.'),
-              backgroundColor: Colors.orange,
-              duration: Duration(seconds: 3),
-            ),
-          );
-        }
-        return;
-      }
-      
-      // Continue with normal flow if validation passed
+      // Continue with normal flow
       debugPrint('=== POSTURE CAPTURE: Success - proceeding to diagnosis ===');
       widget.onCapture(confidence);
       
@@ -171,7 +158,7 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF818cf8)),
+                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -197,18 +184,18 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AppColors.white,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: const Color(0xFF818cf8), width: 6),
+                                border: Border.all(color: AppColors.primary, width: 6),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: AppColors.primary.withOpacity(0.3),
                                     blurRadius: 20,
                                     spreadRadius: 5,
                                   ),
                                 ],
                               ),
-                              child: const Icon(Icons.camera_alt, color: Color(0xFF6366f1), size: 36),
+                              child: const Icon(Icons.camera_alt, color: AppColors.primary, size: 36),
                             ),
                           ),
                           

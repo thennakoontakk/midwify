@@ -221,12 +221,6 @@ class _PatientFormScreenState extends State<PatientFormScreen> {
                 _row([
                   _field(_gestWeeksCtrl, 'Gestational Weeks *',
                       keyboard: TextInputType.number, validator: _required),
-                  _dropdown(
-                    'Risk Level',
-                    _riskLevel,
-                    ['low', 'medium', 'high'],
-                    (v) => setState(() => _riskLevel = v ?? 'low'),
-                  ),
                 ]),
                 _row([
                   _field(_lmpCtrl, 'LMP (dd/mm/yyyy)'),

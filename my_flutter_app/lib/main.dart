@@ -16,6 +16,8 @@ import 'screens/fetal_health_history_screen.dart';
 import 'screens/maternal_health_form_screen.dart';
 import 'screens/maternal_health_result_screen.dart';
 import 'screens/ar_capture/ar_capture_main_screen.dart';
+import 'screens/profile_screen.dart';
+import 'screens/vr_training_screen.dart';
 import 'services/offline_model_service.dart';
 import 'services/offline_maternal_model_service.dart';
 
@@ -70,6 +72,8 @@ class MidwifyApp extends StatelessWidget {
             const MaternalHealthResultScreen(),
         // AR Capture Features
         '/ar-capture': (context) => const ARCaptureMainScreen(),
+        '/profile': (context) => const ProfileScreen(),
+        '/vr-training': (context) => const VRTrainingScreen(),
       },
     );
   }
