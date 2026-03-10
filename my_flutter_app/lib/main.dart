@@ -12,7 +12,7 @@ import 'screens/fetal_health_patient_select_screen.dart';
 import 'screens/fetal_health_form_screen.dart';
 import 'screens/fetal_health_result_screen.dart';
 import 'screens/fetal_health_history_screen.dart';
-import 'screens/fetal_health_dashboard_screen.dart';
+// import 'screens/fetal_health_dashboard_screen.dart';
 import 'screens/maternal_health_form_screen.dart';
 import 'screens/maternal_health_result_screen.dart';
 import 'screens/ar_capture/ar_capture_main_screen.dart';
@@ -61,8 +61,8 @@ class MidwifyApp extends StatelessWidget {
             const FetalHealthResultScreen(),
         '/fetal-health-history': (context) =>
             const FetalHealthHistoryScreen(),
-        '/fetal-health-dashboard': (context) =>
-            const FetalHealthDashboardScreen(),
+        // '/fetal-health-dashboard': (context) =>
+        //     const FetalHealthDashboardScreen(),
         // Maternal Risk Analysis routes
         '/maternal-health': (context) =>
             const MaternalHealthFormScreen(),

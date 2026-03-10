@@ -770,6 +770,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Navigator.pushNamed(context, '/fetal-health');
                 },
               ),
+              /*
               _DrawerItem(
                 icon: Icons.dashboard_rounded,
                 label: 'Fetal Dashboard',
@@ -778,6 +779,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   Navigator.pushNamed(context, '/fetal-health-dashboard');
                 },
               ),
+              */
               const SizedBox(height: 16),
               _DrawerItem(
                 icon: Icons.camera_alt_outlined,
