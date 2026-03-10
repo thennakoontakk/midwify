@@ -227,9 +227,9 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                     _buildPatientDropdown(),
                     const SizedBox(height: 20),
 
-                    _buildLabel('Patient Age', Icons.calendar_today_outlined),
+                    _buildLabel('Age', Icons.calendar_today_outlined),
                     const SizedBox(height: 8),
-                    _buildTextField(_ageController, 'e.g. 25', TextInputType.number),
+                    _buildTextField(_ageController, 'Age', TextInputType.number),
                     const SizedBox(height: 20),
 
                     Row(
@@ -238,9 +238,9 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel('Systolic BP', Icons.monitor_heart_outlined, color: Colors.red),
+                              _buildLabel('SystolicBP', Icons.monitor_heart_outlined, color: Colors.red),
                               const SizedBox(height: 8),
-                              _buildTextField(_sysBpController, '120', TextInputType.number),
+                              _buildTextField(_sysBpController, 'Upper value of Blood Pressure in mmHg', TextInputType.number),
                             ],
                           ),
                         ),
@@ -249,9 +249,9 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel('Diastolic BP', Icons.show_chart, color: Colors.blue),
+                              _buildLabel('DiastolicBP', Icons.show_chart, color: Colors.blue),
                               const SizedBox(height: 8),
-                              _buildTextField(_diaBpController, '80', TextInputType.number),
+                              _buildTextField(_diaBpController, 'Lower value of Blood Pressure in mmHg', TextInputType.number),
                             ],
                           ),
                         ),
@@ -265,9 +265,9 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel('Heart Rate', Icons.favorite_border, color: const Color(0xFFE91E7B)),
+                              _buildLabel('HeartRate', Icons.favorite_border, color: const Color(0xFFE91E7B)),
                               const SizedBox(height: 8),
-                              _buildTextField(_hrController, '75', TextInputType.number),
+                              _buildTextField(_hrController, 'A normal resting heart rate in beats per minute.', TextInputType.number),
                             ],
                           ),
                         ),
@@ -276,9 +276,9 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildLabel('Body Temp', Icons.thermostat_outlined, color: Colors.orange),
+                              _buildLabel('BodyTemp', Icons.thermostat_outlined, color: Colors.orange),
                               const SizedBox(height: 8),
-                              _buildTextField(_tempController, '36.6', const TextInputType.numberWithOptions(decimal: true)),
+                              _buildTextField(_tempController, 'F', const TextInputType.numberWithOptions(decimal: true)),
                             ],
                           ),
                         ),
@@ -286,9 +286,9 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                     ),
                     const SizedBox(height: 20),
 
-                    _buildLabel('Blood Sugar', Icons.water_drop_outlined, color: Colors.purple[300]),
+                    _buildLabel('BS', Icons.water_drop_outlined, color: Colors.purple[300]),
                     const SizedBox(height: 8),
-                    _buildTextField(_bsController, '90', const TextInputType.numberWithOptions(decimal: true)),
+                    _buildTextField(_bsController, 'Blood glucose levels is in terms of a molar concentration, mmol/L', const TextInputType.numberWithOptions(decimal: true)),
                     const SizedBox(height: 32),
 
                     Row(

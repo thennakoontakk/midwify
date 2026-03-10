@@ -68,32 +68,54 @@ class FetalHealthService {
     'histogram_tendency',
   ];
 
-  /// Human-friendly labels for each feature (for the form).
+  /// Abbreviated labels for each feature.
   static const Map<String, String> featureLabels = {
-    'baseline value': 'Baseline Fetal Heart Rate (BPM)',
-    'accelerations': 'Accelerations (per second)',
-    'fetal_movement': 'Fetal Movements (per second)',
-    'uterine_contractions': 'Uterine Contractions (per second)',
-    'light_decelerations': 'Light Decelerations (per second)',
-    'severe_decelerations': 'Severe Decelerations (per second)',
-    'prolongued_decelerations': 'Prolonged Decelerations (per second)',
-    'abnormal_short_term_variability': 'Abnormal Short-Term Variability (%)',
-    'mean_value_of_short_term_variability':
-        'Mean Short-Term Variability (ms)',
-    'percentage_of_time_with_abnormal_long_term_variability':
-        'Abnormal Long-Term Variability (%)',
-    'mean_value_of_long_term_variability':
-        'Mean Long-Term Variability (ms)',
-    'histogram_width': 'FHR Histogram Width',
-    'histogram_min': 'FHR Histogram Minimum',
-    'histogram_max': 'FHR Histogram Maximum',
-    'histogram_number_of_peaks': 'Histogram Number of Peaks',
-    'histogram_number_of_zeroes': 'Histogram Number of Zeroes',
-    'histogram_mode': 'FHR Histogram Mode',
-    'histogram_mean': 'FHR Histogram Mean',
-    'histogram_median': 'FHR Histogram Median',
-    'histogram_variance': 'FHR Histogram Variance',
-    'histogram_tendency': 'FHR Histogram Tendency',
+    'baseline value': 'Baseline',
+    'accelerations': 'Accel',
+    'fetal_movement': 'Fetal Mov',
+    'uterine_contractions': 'Uterine Con',
+    'light_decelerations': 'Light Decel',
+    'severe_decelerations': 'Severe Decel',
+    'prolongued_decelerations': 'Prolonged Decel',
+    'abnormal_short_term_variability': 'Abnormal STV',
+    'mean_value_of_short_term_variability': 'Mean STV',
+    'percentage_of_time_with_abnormal_long_term_variability': 'Abnormal LTV',
+    'mean_value_of_long_term_variability': 'Mean LTV',
+    'histogram_width': 'Hist Width',
+    'histogram_min': 'Hist Min',
+    'histogram_max': 'Hist Max',
+    'histogram_number_of_peaks': 'Hist Peaks',
+    'histogram_number_of_zeroes': 'Hist Zeroes',
+    'histogram_mode': 'Hist Mode',
+    'histogram_mean': 'Hist Mean',
+    'histogram_median': 'Hist Median',
+    'histogram_variance': 'Hist Variance',
+    'histogram_tendency': 'Hist Tendency',
+  };
+
+  /// Example numeric hints for each feature.
+  static const Map<String, String> featureHints = {
+    'baseline value': '120.0',
+    'accelerations': '0.005',
+    'fetal_movement': '0.002',
+    'uterine_contractions': '0.004',
+    'light_decelerations': '0.001',
+    'severe_decelerations': '0.0',
+    'prolongued_decelerations': '0.0',
+    'abnormal_short_term_variability': '45.0',
+    'mean_value_of_short_term_variability': '1.2',
+    'percentage_of_time_with_abnormal_long_term_variability': '10.0',
+    'mean_value_of_long_term_variability': '8.5',
+    'histogram_width': '50.0',
+    'histogram_min': '80.0',
+    'histogram_max': '130.0',
+    'histogram_number_of_peaks': '3',
+    'histogram_number_of_zeroes': '0',
+    'histogram_mode': '120.0',
+    'histogram_mean': '118.0',
+    'histogram_median': '121.0',
+    'histogram_variance': '15.0',
+    'histogram_tendency': '0',
   };
 
   /// The form sections for organized input.
