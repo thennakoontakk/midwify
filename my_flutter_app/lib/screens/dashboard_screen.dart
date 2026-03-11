@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../core/app_colors.dart';
+import '../core/app_drawer.dart';
 
 /// Dashboard screen for the Midwify app.
 /// Displays live statistics, charts, upcoming EDDs, and recent patients
@@ -226,7 +227,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           ),
         ],
       ),
-      drawer: _buildDrawer(context),
+      drawer: const AppDrawer(currentRoute: '/dashboard'),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(color: AppColors.primary),
@@ -756,133 +757,67 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
     );
   }
+}
 
-  // ── Drawer (unchanged) ──────────────────────────────────────────────
-  Widget _buildDrawer(BuildContext context) {
-    return Drawer(
-      backgroundColor: AppColors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topRight: Radius.circular(20),
-          bottomRight: Radius.circular(20),
-        ),
+// ─────────────────────────────────────────────────────────────────────
+// Reusable Widgets
+// ─────────────────────────────────────────────────────────────────────
+
+class _RiskBadge extends StatelessWidget {
+  final String riskLevel;
+  const _RiskBadge({required this.riskLevel});
+
+  @override
+  Widget build(BuildContext context) {
+    Color color;
+    String label;
+    Color bgColor;
+
+    switch (riskLevel.toLowerCase()) {
+      case 'high':
+        color = AppColors.danger;
+        label = 'High Risk';
+        bgColor = AppColors.dangerLight;
+        break;
+      case 'medium':
+        color = AppColors.warning;
+        label = 'Medium Risk';
+        bgColor = AppColors.warningLight;
+        break;
+      default:
+        color = AppColors.success;
+        label = 'Low Risk';
+        bgColor = AppColors.successLight;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 12, bottom: 20),
-                child: Text(
-                  'MENU',
-                  style: TextStyle(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.grey500,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-              _DrawerItem(
-                icon: Icons.show_chart_rounded,
-                label: 'Dashboard',
-                isSelected: true,
-                onTap: () => Navigator.pop(context),
-              ),
-              _DrawerItem(
-                icon: Icons.groups_outlined,
-                label: 'Patients',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/patients');
-                },
-              ),
-              const SizedBox(height: 16),
-              _DrawerItem(
-                icon: Icons.warning_amber_rounded,
-                label: 'New Risk Analysis',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/maternal-health');
-                },
-              ),
-              _DrawerItem(
-                icon: Icons.monitor_heart_outlined,
-                label: 'Fetal Health Scan',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/fetal-health');
-                },
-              ),
-              /*
-              _DrawerItem(
-                icon: Icons.dashboard_rounded,
-                label: 'Fetal Dashboard',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/fetal-health-dashboard');
-                },
-              ),
-              */
-              const SizedBox(height: 16),
-              _DrawerItem(
-                icon: Icons.camera_alt_outlined,
-                label: 'AR Photo Capture',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/ar-capture');
-                },
-              ),
-              const SizedBox(height: 16),
-              _DrawerItem(
-                icon: Icons.view_in_ar_outlined,
-                label: 'VR Training',
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/vr-training');
-                },
-              ),
-              const Spacer(),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.primaryLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: _DrawerItem(
-                  icon: Icons.settings_outlined,
-                  label: 'Settings',
-                  isHighlighted: true,
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushNamed(context, '/profile').then((updated) {
-                      if (updated == true) {
-                        _loadData(); // Refresh name if changed
-                      }
-                    });
-                  },
-                ),
-              ),
-            ],
-          ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: color,
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
         ),
       ),
     );
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════
-// Reusable Widgets
-// ══════════════════════════════════════════════════════════════════════
-
-/// Card wrapper for chart sections
 class _ChartCard extends StatelessWidget {
   final String title;
-  final Widget child;
   final Widget? trailing;
+  final Widget child;
 
-  const _ChartCard({required this.title, required this.child, this.trailing});
+  const _ChartCard({
+    required this.title,
+    this.trailing,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -890,13 +825,14 @@ class _ChartCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.04),
             blurRadius: 10,
-            offset: const Offset(0, 2),
+            offset: const Offset(0, 4),
           ),
         ],
       ),
@@ -917,7 +853,7 @@ class _ChartCard extends StatelessWidget {
               if (trailing != null) trailing!,
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           child,
         ],
       ),
@@ -925,7 +861,31 @@ class _ChartCard extends StatelessWidget {
   }
 }
 
-/// Compact stat card for 2x2 grid
+class _LegendDot extends StatelessWidget {
+  final Color color;
+  final String label;
+  const _LegendDot({required this.color, required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 12, color: AppColors.textSecondary),
+        ),
+      ],
+    );
+  }
+}
+
 class _MiniStatCard extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
@@ -946,22 +906,15 @@ class _MiniStatCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.cardBackground,
-        borderRadius: BorderRadius.circular(14),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.grey200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            width: 40,
-            height: 40,
+            padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: iconBg,
               borderRadius: BorderRadius.circular(10),
@@ -970,15 +923,6 @@ class _MiniStatCard extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.w800,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
             label,
             style: const TextStyle(
               fontSize: 12,
@@ -986,124 +930,16 @@ class _MiniStatCard extends StatelessWidget {
               fontWeight: FontWeight.w500,
             ),
           ),
-        ],
-      ),
-    );
-  }
-}
-
-/// Legend dot
-class _LegendDot extends StatelessWidget {
-  final Color color;
-  final String label;
-
-  const _LegendDot({required this.color, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          width: 10,
-          height: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: AppColors.textSecondary,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-/// Risk level badge
-class _RiskBadge extends StatelessWidget {
-  final String riskLevel;
-
-  const _RiskBadge({required this.riskLevel});
-
-  @override
-  Widget build(BuildContext context) {
-    Color bg, fg;
-    switch (riskLevel) {
-      case 'high':
-        bg = AppColors.dangerLight;
-        fg = AppColors.danger;
-        break;
-      case 'medium':
-        bg = AppColors.warningLight;
-        fg = AppColors.warning;
-        break;
-      default:
-        bg = AppColors.successLight;
-        fg = AppColors.success;
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        riskLevel[0].toUpperCase() + riskLevel.substring(1),
-        style: TextStyle(
-          fontSize: 11,
-          fontWeight: FontWeight.w600,
-          color: fg,
-        ),
-      ),
-    );
-  }
-}
-
-/// Drawer menu item
-class _DrawerItem extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool isSelected;
-  final bool isHighlighted;
-  final VoidCallback? onTap;
-
-  const _DrawerItem({
-    required this.icon,
-    required this.label,
-    this.isSelected = false,
-    this.isHighlighted = false,
-    this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final color = isHighlighted || isSelected
-        ? AppColors.primary
-        : AppColors.textPrimary;
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-        child: Row(
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(width: 14),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w500,
-                color: color,
-              ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 20,
+              color: AppColors.textPrimary,
+              fontWeight: FontWeight.w800,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

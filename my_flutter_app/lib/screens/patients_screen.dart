@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../core/app_colors.dart';
+import '../core/app_drawer.dart';
 import '../services/patient_service.dart';
 
 /// Patients list screen — shows all mothers managed by the current midwife.
@@ -72,6 +73,7 @@ class _PatientsScreenState extends State<PatientsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
+      drawer: const AppDrawer(currentRoute: '/patients'),
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,

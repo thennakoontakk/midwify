@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
+import '../core/app_drawer.dart';
 import '../services/midwife_service.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -102,6 +103,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
         title: const Text(
           'My Profile',
           style: TextStyle(
@@ -111,6 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
       ),
+      drawer: const AppDrawer(currentRoute: '/profile'),
       body: _loading
           ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
           : Form(

@@ -8,6 +8,7 @@ import 'diagnosis_screen.dart';
 import 'geometric_tool_screen.dart';
 import '../../services/ar_capture/ml_service.dart';
 import '../../core/app_colors.dart';
+import '../../core/app_drawer.dart';
 import 'ar_capture_models.dart';
 
 class ARCaptureMainScreen extends StatefulWidget {
@@ -140,6 +141,7 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
+      drawer: const AppDrawer(currentRoute: '/ar-capture'),
       appBar: AppBar(
         title: Text(
           t['title']!,
@@ -152,9 +154,19 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: _handleBack,
+        leading: Builder(
+          builder: (context) {
+            if (_currentScreen == ScreenState.languageSelection) {
+              return IconButton(
+                icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+                onPressed: () => Scaffold.of(context).openDrawer(),
+              );
+            }
+            return IconButton(
+              icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+              onPressed: _handleBack,
+            );
+          },
         ),
         actions: [
           if (_currentScreen != ScreenState.languageSelection)

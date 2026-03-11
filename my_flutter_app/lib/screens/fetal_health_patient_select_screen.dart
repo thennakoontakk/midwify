@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../core/app_colors.dart';
+import '../core/app_drawer.dart';
 import '../services/patient_service.dart';
 
 /// Screen for selecting a patient before performing a fetal health assessment.
@@ -65,13 +66,16 @@ class _FetalHealthPatientSelectScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
+      drawer: const AppDrawer(currentRoute: '/fetal-health'),
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: const Text(
           'Fetal Health Assessment',

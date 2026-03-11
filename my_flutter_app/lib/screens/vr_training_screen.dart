@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import '../core/app_colors.dart';
+import '../core/app_drawer.dart';
 
 class VRTrainingScreen extends StatefulWidget {
   const VRTrainingScreen({super.key});
@@ -32,13 +33,16 @@ class _VRTrainingScreenState extends State<VRTrainingScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.white,
+      drawer: const AppDrawer(currentRoute: '/vr-training'),
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
-          onPressed: () => Navigator.pop(context),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: AppColors.textPrimary),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
         ),
         title: const Text(
           'VR Training Portal',

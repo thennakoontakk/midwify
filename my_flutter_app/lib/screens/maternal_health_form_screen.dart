@@ -3,6 +3,7 @@ import 'package:flutter/services.dart'; // Add for HapticFeedback
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../core/app_colors.dart';
+import '../core/app_drawer.dart';
 import '../services/maternal_health_service.dart';
 
 class MaternalHealthFormScreen extends StatefulWidget {
@@ -153,6 +154,7 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.scaffoldBackground,
+      drawer: const AppDrawer(currentRoute: '/maternal-health'),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
