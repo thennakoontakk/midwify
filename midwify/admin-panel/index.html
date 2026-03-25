@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Midwify Admin Panel - Manage Public Health Midwives" />
+    <title>Midwify Admin Panel</title>
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <div class="brand-icon">
+            <span class="material-icons-round">local_hospital</span>
+          </div>
+          <div class="brand-text">
+            <h1>Midwify</h1>
+            <span>Admin Panel</span>
+          </div>
+        </div>
+
+        <nav class="sidebar-nav" id="sidebar-nav">
+          <a href="#dashboard" class="nav-item active" data-page="dashboard">
+            <span class="material-icons-round">dashboard</span>
+            <span class="nav-label">Dashboard</span>
+          </a>
+          <a href="#midwives" class="nav-item" data-page="midwives">
+            <span class="material-icons-round">group</span>
+            <span class="nav-label">Midwives</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-footer">
+          <div class="admin-badge">
+            <span class="material-icons-round">admin_panel_settings</span>
+            <span>Administrator</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="main-content">
+        <header class="topbar">
+          <div class="topbar-left">
+            <button class="menu-toggle" id="menu-toggle">
+              <span class="material-icons-round">menu</span>
+            </button>
+            <h2 class="page-title" id="page-title">Dashboard</h2>
+          </div>
+          <div class="topbar-right">
+            <div class="topbar-search">
+              <span class="material-icons-round">search</span>
+              <input type="text" placeholder="Search..." id="global-search" />
+            </div>
+            <div class="admin-avatar">
+              <span class="material-icons-round">person</span>
+            </div>
+          </div>
+        </header>
+
+        <div class="page-container" id="page-container">
+          <!-- Pages will be rendered here -->
+        </div>
+      </main>
+    </div>
+
+    <!-- Modal Overlay -->
+    <div class="modal-overlay" id="modal-overlay">
+      <div class="modal" id="modal">
+        <div class="modal-header">
+          <h3 id="modal-title">Modal Title</h3>
+          <button class="modal-close" id="modal-close">
+            <span class="material-icons-round">close</span>
+          </button>
+        </div>
+        <div class="modal-body" id="modal-body">
+          <!-- Modal content -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
