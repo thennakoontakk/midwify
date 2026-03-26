@@ -9,6 +9,7 @@ import '../../screens/ar_capture/ar_capture_models.dart';
 import 'classifier_service.dart';
 import 'cranial_analysis_service.dart';
 import 'posture_screening.dart';
+import 'scan_report_logger.dart';
 
 class MLService {
   static final MLService _instance = MLService._internal();
@@ -43,69 +44,111 @@ class MLService {
     await initializeModels();
   }
 
-  Future<ARCaptureResult> runInference(String imagePath, AppMode mode) async {
+  Future<ARCaptureResult> runInference(
+    String imagePath,
+    AppMode mode, {
+    String? secondaryImagePath,
+  }) async {
     debugPrint('=== INFERENCE MODE: $mode ===');
 
+    ARCaptureResult result;
     if (imagePath.isEmpty ||
         imagePath == 'null' ||
         imagePath == 'undefined') {
       debugPrint('ERROR: Invalid image path');
-      return ARCaptureResult.invalid(
+      result = ARCaptureResult.invalid(
         summary: 'No image path was provided for screening.',
+        debugDetails: {
+          'mode': mode.name,
+          'reason': 'invalid_image_path',
+          'imagePath': imagePath,
+        },
       );
+      await _logScanReport(mode, imagePath, result);
+      return result;
     }
 
     if (kIsWeb) {
-      return ARCaptureResult.invalid(
+      result = ARCaptureResult.invalid(
         summary: 'AR screening is unavailable on web.',
+        debugDetails: {
+          'mode': mode.name,
+          'reason': 'web_not_supported',
+          'imagePath': imagePath,
+        },
       );
+      await _logScanReport(mode, imagePath, result);
+      return result;
     }
 
     try {
       final file = File(imagePath);
       if (!await file.exists()) {
         debugPrint('ERROR: File not found: $imagePath');
-        return ARCaptureResult.invalid(
+        result = ARCaptureResult.invalid(
           summary: 'The captured image file could not be found.',
+          debugDetails: {
+            'mode': mode.name,
+            'reason': 'file_not_found',
+            'imagePath': imagePath,
+          },
         );
+        await _logScanReport(mode, imagePath, result);
+        return result;
       }
 
       if (mode == AppMode.head) {
-        return _runHeadInference(imagePath);
+        result = await _runHeadInference(
+          imagePath,
+          secondaryImagePath: secondaryImagePath,
+        );
+        await _logScanReport(mode, imagePath, result);
+        return result;
       }
 
       final imageBytes = await file.readAsBytes();
       final decoded = img.decodeImage(imageBytes);
       if (decoded == null) {
         debugPrint('ERROR: Failed to decode image');
-        return ARCaptureResult.invalid(
+        result = ARCaptureResult.invalid(
           summary: 'The captured image could not be decoded for screening.',
+          debugDetails: {
+            'mode': mode.name,
+            'reason': 'decode_failed',
+            'imagePath': imagePath,
+          },
         );
+        await _logScanReport(mode, imagePath, result);
+        return result;
       }
 
-      return _runPostureInference(decoded);
+      result = await _runPostureInference(decoded);
+      await _logScanReport(mode, imagePath, result);
+      return result;
     } catch (e) {
       debugPrint('ERROR: Exception during inference: $e');
-      return ARCaptureResult.invalid(
+      result = ARCaptureResult.invalid(
         summary: 'Screening failed while processing the captured image.',
         warnings: [e.toString()],
+        debugDetails: {
+          'mode': mode.name,
+          'reason': 'exception',
+          'imagePath': imagePath,
+          'error': e.toString(),
+        },
       );
+      await _logScanReport(mode, imagePath, result);
+      return result;
     }
   }
 
-  Future<ARCaptureResult> _runHeadInference(String imagePath) async {
-    final imageBytes = await File(imagePath).readAsBytes();
-    final decoded = img.decodeImage(imageBytes);
-    if (decoded == null) {
-      return ARCaptureResult.invalid(
-        summary: 'The captured head image could not be decoded.',
-      );
-    }
-
+  Future<ARCaptureResult> _runHeadInference(
+    String imagePath, {
+    String? secondaryImagePath,
+  }) async {
     return CranialAnalysisService().analyzeFromPath(
       imagePath,
-      imageWidth: decoded.width,
-      imageHeight: decoded.height,
+      secondaryImagePath: secondaryImagePath,
     );
   }
 
@@ -115,6 +158,11 @@ class MLService {
       return ARCaptureResult.invalid(
         summary: 'The posture screening model is not initialized.',
         landmarkSource: _postureAsset,
+        debugDetails: {
+          'mode': AppMode.posture.name,
+          'reason': 'posture_model_not_initialized',
+          'landmarkSource': _postureAsset,
+        },
       );
     }
     final assessment = analyzePostureKeypoints(keypoints);
@@ -157,6 +205,33 @@ class MLService {
       summary: summary,
       warnings: warnings,
       landmarkSource: _postureAsset,
+      debugDetails: {
+        'mode': 'posture',
+        'postureAssessment': {
+          'shoulderTiltDeg': assessment.shoulderTiltDeg,
+          'hipTiltDeg': assessment.hipTiltDeg,
+          'trunkTiltDeg': assessment.trunkTiltDeg,
+          'headTiltDeg': assessment.headTiltDeg,
+          'midlineOffsetRatio': assessment.midlineOffsetRatio,
+          'visibilityQuality': assessment.visibilityQuality,
+          'cameraRollDeg': assessment.cameraRollDeg,
+          'qualityScore': assessment.qualityScore,
+          'screeningScore': assessment.screeningScore,
+          'supportedView': assessment.supportedView,
+          'riskBand': assessment.riskBand.name,
+          'warnings': assessment.warnings,
+        },
+        'keypoints': keypoints
+            .asMap()
+            .entries
+            .map((entry) => {
+                  'index': entry.key,
+                  'y': entry.value[0],
+                  'x': entry.value[1],
+                  'confidence': entry.value[2],
+                })
+            .toList(),
+      },
       postureMetrics: PostureScreeningMetrics(
         shoulderTiltDeg: assessment.shoulderTiltDeg,
         hipTiltDeg: assessment.hipTiltDeg,
@@ -208,6 +283,18 @@ class MLService {
           },
         ),
       ),
+    );
+  }
+
+  Future<void> _logScanReport(
+    AppMode mode,
+    String imagePath,
+    ARCaptureResult result,
+  ) async {
+    await ScanReportLogger.logScanReport(
+      mode: mode,
+      imagePath: imagePath,
+      result: result,
     );
   }
 }

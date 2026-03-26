@@ -71,8 +71,12 @@ class DiagnosisScreen extends StatelessWidget {
                     _buildSummaryCard(t),
                     const SizedBox(height: 16),
                     if (mode == AppMode.head && result.headMetrics != null)
-                      _buildHeadMetricsCard(t, result.headMetrics!)
-                    else if (mode == AppMode.posture &&
+                      _buildHeadMetricsCard(t, result.headMetrics!),
+                    if (mode == AppMode.head && result.headMetrics != null) ...[
+                      const SizedBox(height: 16),
+                      _buildHeadAiDetailsCard(t, result.headMetrics!),
+                    ],
+                    if (mode == AppMode.posture &&
                         result.postureMetrics != null)
                       _buildPostureMetricsCard(t, result.postureMetrics!),
                     if (_hasWarnings) ...[
@@ -128,6 +132,23 @@ class DiagnosisScreen extends StatelessWidget {
       'imageClassifier': 'Image Classifier',
       'abnormalProb': 'Abnormal Probability',
       'normalProb': 'Normal Probability',
+      'aiDetails': 'AI Details',
+      'headShape': 'Head Shape',
+      'aiRiskLevel': 'AI Risk Level',
+      'aiConfidence': 'AI Confidence',
+      'aiUrgency': 'AI Urgency',
+      'visualObservation': 'Visual Observation',
+      'recommendationTitle': 'Recommendation',
+      'keyFindings': 'Key Findings',
+      'aiProvider': 'AI Provider',
+      'inputImages': 'Input Images',
+      'totalTokens': 'Total Tokens',
+      'promptTokens': 'Prompt Tokens',
+      'fallbackMode': 'Fallback Mode',
+      'cephalicRisk': 'Cephalic Index Risk',
+      'asymmetryRisk': 'Asymmetry Risk',
+      'orbitalRisk': 'Orbital Symmetry Risk',
+      'aiError': 'AI Error',
       'shoulderTilt': 'Shoulder Tilt',
       'hipTilt': 'Hip Tilt',
       'trunkTilt': 'Trunk Tilt',
@@ -345,6 +366,150 @@ class DiagnosisScreen extends StatelessWidget {
           '${metrics.cameraRollDeg.toStringAsFixed(2)} ${t['degrees']}',
         ),
       ],
+    );
+  }
+
+  Widget _buildHeadAiDetailsCard(
+    Map<String, String> t,
+    HeadScreeningMetrics metrics,
+  ) {
+    final geometrySignals = result.debugDetails['geometrySignals'];
+    final aiProvider = result.debugDetails['aiProvider'] as String?;
+    final aiImageCount = result.debugDetails['aiImageCount'];
+    final aiUsageMetadata = result.debugDetails['aiUsageMetadata'];
+    final fallbackMode = result.debugDetails['fallbackMode'] as String?;
+    final aiError = result.debugDetails['aiError'] as String?;
+
+    final signalMap = geometrySignals is Map
+        ? Map<String, dynamic>.from(geometrySignals)
+        : const <String, dynamic>{};
+    final usageMap = aiUsageMetadata is Map
+        ? Map<String, dynamic>.from(aiUsageMetadata)
+        : const <String, dynamic>{};
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.primaryLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            t['aiDetails']!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 14),
+          Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            children: [
+              _metricTile(t['headShape']!, metrics.headShapeLabel),
+              _metricTile(t['aiRiskLevel']!, metrics.aiRiskLevel),
+              _metricTile(t['aiConfidence']!, metrics.aiConfidence),
+              _metricTile(t['aiUrgency']!, metrics.aiUrgency),
+              if (aiProvider != null && aiProvider.isNotEmpty)
+                _metricTile(t['aiProvider']!, aiProvider),
+              if (aiImageCount != null)
+                _metricTile(t['inputImages']!, aiImageCount.toString()),
+              if (usageMap['totalTokenCount'] != null)
+                _metricTile(
+                  t['totalTokens']!,
+                  usageMap['totalTokenCount'].toString(),
+                ),
+              if (usageMap['promptTokenCount'] != null)
+                _metricTile(
+                  t['promptTokens']!,
+                  usageMap['promptTokenCount'].toString(),
+                ),
+              if (fallbackMode != null && fallbackMode.isNotEmpty)
+                _metricTile(t['fallbackMode']!, fallbackMode),
+              if (signalMap['cephalicIndexRisk'] != null)
+                _metricTile(
+                  t['cephalicRisk']!,
+                  signalMap['cephalicIndexRisk'].toString(),
+                ),
+              if (signalMap['asymmetryRisk'] != null)
+                _metricTile(
+                  t['asymmetryRisk']!,
+                  signalMap['asymmetryRisk'].toString(),
+                ),
+              if (signalMap['orbitalSymmetryRisk'] != null)
+                _metricTile(
+                  t['orbitalRisk']!,
+                  signalMap['orbitalSymmetryRisk'].toString(),
+                ),
+            ],
+          ),
+          if (metrics.visualObservations.isNotEmpty) ...[
+            const SizedBox(height: 16),
+            _detailBlock(
+              t['visualObservation']!,
+              metrics.visualObservations,
+            ),
+          ],
+          if (metrics.recommendation.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _detailBlock(
+              t['recommendationTitle']!,
+              metrics.recommendation,
+            ),
+          ],
+          if (metrics.keyFindings.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Text(
+              t['keyFindings']!,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 8),
+            for (final finding in metrics.keyFindings)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Icon(
+                        Icons.circle,
+                        size: 8,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        finding,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+          if (aiError != null && aiError.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            _detailBlock(
+              t['aiError']!,
+              aiError,
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -644,6 +809,39 @@ class DiagnosisScreen extends StatelessWidget {
             style: const TextStyle(
               fontSize: 12,
               color: AppColors.textSecondary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _detailBlock(String label, String value) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7FAFC),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              color: AppColors.textSecondary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textPrimary,
+              height: 1.4,
             ),
           ),
         ],

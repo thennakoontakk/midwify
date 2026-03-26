@@ -37,6 +37,7 @@ dependencies:
   firebase_core: 3.12.1
   firebase_auth: 5.5.1
   cloud_firestore: 5.6.5
+  flutter_dotenv: 5.1.0
   http: 1.6.0
   fl_chart: 0.69.2
   camera: 0.11.0+1
@@ -77,9 +78,9 @@ flutter:
   uses-material-design: true
 
   assets:
+    - .env
     - assets/fetal_health_rf_model.json
     - assets/maternal_risk_rf_model.json
-    - assets/models/cranial_analysis.tflite
     - assets/models/face_landmarker.task
     - assets/models/posture_analysis.tflite
 
