@@ -7,9 +7,11 @@ import 'head_capture_screen.dart';
 import 'posture_capture_screen.dart';
 import 'diagnosis_screen.dart';
 import 'geometric_tool_screen.dart';
-import '../../services/ar_capture/ml_service.dart';
-import '../../core/app_colors.dart';
+import 'child_details_screen.dart';
 import '../../core/app_drawer.dart';
+import '../../core/app_colors.dart';
+import '../../services/ar_capture/ml_service.dart';
+import '../../services/child_report_service.dart';
 import 'ar_capture_models.dart';
 
 class ARCaptureMainScreen extends StatefulWidget {
@@ -24,6 +26,7 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
   AppMode _mode = AppMode.none;
   AppLanguage _language = AppLanguage.en;
   ARCaptureResult? _captureResult;
+  ChildDetailsData? _childDetails;
 
   @override
   void initState() {
@@ -44,6 +47,13 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
   void _setModeAndNavigate(AppMode mode) {
     setState(() {
       _mode = mode;
+      _currentScreen = ScreenState.childDetails;
+    });
+  }
+
+  void _onChildDetailsSubmitted(ChildDetailsData details) {
+    setState(() {
+      _childDetails = details;
       _currentScreen = ScreenState.guide;
     });
   }
@@ -68,6 +78,9 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
           _currentScreen = ScreenState.languageSelection;
           break;
         case ScreenState.guide:
+          _currentScreen = ScreenState.childDetails;
+          break;
+        case ScreenState.childDetails:
           _currentScreen = ScreenState.modeSelection;
           break;
         case ScreenState.capture:
@@ -86,17 +99,62 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
     });
   }
 
-  void _navigateHome() {
-    setState(() {
-      _mode = AppMode.none;
-      _captureResult = null;
-      _currentScreen = ScreenState.modeSelection;
-    });
+  void _navigateHome() async {
+    if (_captureResult != null && _childDetails != null) {
+      // Show loading
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => const Center(child: CircularProgressIndicator()),
+      );
+
+      try {
+        await ChildReportService.addReport(ChildReportData(
+          childName: _childDetails!.name,
+          childAge: _childDetails!.age,
+          mode: _mode.name,
+          result: _captureResult!,
+          midwifeId: '', 
+        ));
+      } catch (e) {
+        if (mounted) Navigator.pop(context); // close dialog
+        debugPrint('Failed to save child report: $e');
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Firebase Error: $e'), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
+
+      if (mounted) Navigator.pop(context); // close dialog
+    }
+
+    if (mounted) {
+      Navigator.of(context).pushReplacementNamed('/dashboard');
+    }
   }
 
   void _openGeometricTool() {
+    if (_captureResult == null) {
+      return;
+    }
+
     setState(() {
       _currentScreen = ScreenState.geometricTool;
+    });
+  }
+
+  void _confirmGeometricToolReview(ARCaptureResult reviewedResult) {
+    setState(() {
+      _captureResult = reviewedResult;
+      _currentScreen = ScreenState.diagnosis;
+    });
+  }
+
+  void _retakeFromGeometricTool() {
+    setState(() {
+      _currentScreen = ScreenState.capture;
     });
   }
 
@@ -110,6 +168,12 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         return ModeSelectionScreen(
           language: _language,
           onModeSelected: _setModeAndNavigate,
+        );
+      case ScreenState.childDetails:
+        return ChildDetailsScreen(
+          language: _language,
+          onDetailsSubmitted: _onChildDetailsSubmitted,
+          onBack: _handleBack,
         );
       case ScreenState.guide:
         return HowToScanScreen(
@@ -143,7 +207,9 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
       case ScreenState.geometricTool:
         return GeometricToolScreen(
           language: _language,
-          onConfirm: _handleBack,
+          result: _captureResult ?? ARCaptureResult.invalid(),
+          onConfirm: _confirmGeometricToolReview,
+          onRetake: _retakeFromGeometricTool,
         );
     }
   }
@@ -151,8 +217,18 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
   @override
   Widget build(BuildContext context) {
     final t = {
-      AppLanguage.en: {'title': 'AR Capture Tools', 'offline': 'Offline Mode'},
-      AppLanguage.si: {'title': 'AR රූප ග්‍රහණය', 'offline': 'නොබැඳි ප්‍රකාරය'}
+      AppLanguage.en: {
+        'title': 'AR Screening Tools',
+        'language': 'Language',
+        'english': 'English',
+        'sinhala': 'සිංහල',
+      },
+      AppLanguage.si: {
+        'title': 'AR පරීක්ෂණ මෙවලම්',
+        'language': 'භාෂාව',
+        'english': 'English',
+        'sinhala': 'සිංහල',
+      }
     }[_language]!;
 
     return Scaffold(
@@ -186,38 +262,61 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         ),
         actions: [
           if (_currentScreen != ScreenState.languageSelection)
-            Center(
-              child: Padding(
-                padding: const EdgeInsets.only(right: 16.0),
-                child: Row(
-                  children: [
-                    Text(
-                      _language == AppLanguage.en ? 'EN  |' : 'සිං  |',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        _setLanguage(_language == AppLanguage.en
-                            ? AppLanguage.si
-                            : AppLanguage.en);
-                      },
-                      child: Text(
-                        _language == AppLanguage.en ? 'සිං' : 'EN',
+            Padding(
+              padding: const EdgeInsets.only(right: 12),
+              child: PopupMenuButton<AppLanguage>(
+                tooltip: t['language'],
+                onSelected: _setLanguage,
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: AppLanguage.en,
+                    child: Text(t['english']!),
+                  ),
+                  PopupMenuItem(
+                    value: AppLanguage.si,
+                    child: Text(t['sinhala']!),
+                  ),
+                ],
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: AppColors.primaryLight),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        Icons.language_rounded,
+                        size: 16,
+                        color: AppColors.primary,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        _language == AppLanguage.en
+                            ? t['english']!
+                            : t['sinhala']!,
                         style: const TextStyle(
                           color: AppColors.primary,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
-                    )
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            )
+            ),
         ],
       ),
-      body: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 300),
-        child: _buildCurrentScreen(),
+      body: SafeArea(
+        top: false,
+        child: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 300),
+          child: _buildCurrentScreen(),
+        ),
       ),
     );
   }

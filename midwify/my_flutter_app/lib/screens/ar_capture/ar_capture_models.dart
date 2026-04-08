@@ -1,6 +1,7 @@
 enum ScreenState {
   languageSelection,
   modeSelection,
+  childDetails,
   guide,
   capture,
   diagnosis,
@@ -156,6 +157,9 @@ class ARCaptureResult {
   final List<String> warnings;
   final bool researchUseOnly;
   final String landmarkSource;
+  final String captureImagePath;
+  final bool geometricReviewConfirmed;
+  final String geometricReviewNote;
   final HeadScreeningMetrics? headMetrics;
   final PostureScreeningMetrics? postureMetrics;
   final Map<String, dynamic> debugDetails;
@@ -170,6 +174,9 @@ class ARCaptureResult {
     required this.warnings,
     this.researchUseOnly = true,
     this.landmarkSource = '',
+    this.captureImagePath = '',
+    this.geometricReviewConfirmed = false,
+    this.geometricReviewNote = '',
     this.headMetrics,
     this.postureMetrics,
     this.debugDetails = const {},
@@ -179,6 +186,7 @@ class ARCaptureResult {
     String summary = 'No usable image was captured.',
     List<String> warnings = const [],
     String landmarkSource = '',
+    String captureImagePath = '',
     Map<String, dynamic> debugDetails = const {},
   }) {
     return ARCaptureResult(
@@ -190,7 +198,45 @@ class ARCaptureResult {
       summary: summary,
       warnings: warnings,
       landmarkSource: landmarkSource,
+      captureImagePath: captureImagePath,
       debugDetails: debugDetails,
+    );
+  }
+
+  ARCaptureResult copyWith({
+    bool? isValidImage,
+    bool? supportedView,
+    int? qualityScore,
+    int? screeningScore,
+    RiskBand? riskBand,
+    String? summary,
+    List<String>? warnings,
+    bool? researchUseOnly,
+    String? landmarkSource,
+    String? captureImagePath,
+    bool? geometricReviewConfirmed,
+    String? geometricReviewNote,
+    HeadScreeningMetrics? headMetrics,
+    PostureScreeningMetrics? postureMetrics,
+    Map<String, dynamic>? debugDetails,
+  }) {
+    return ARCaptureResult(
+      isValidImage: isValidImage ?? this.isValidImage,
+      supportedView: supportedView ?? this.supportedView,
+      qualityScore: qualityScore ?? this.qualityScore,
+      screeningScore: screeningScore ?? this.screeningScore,
+      riskBand: riskBand ?? this.riskBand,
+      summary: summary ?? this.summary,
+      warnings: warnings ?? this.warnings,
+      researchUseOnly: researchUseOnly ?? this.researchUseOnly,
+      landmarkSource: landmarkSource ?? this.landmarkSource,
+      captureImagePath: captureImagePath ?? this.captureImagePath,
+      geometricReviewConfirmed:
+          geometricReviewConfirmed ?? this.geometricReviewConfirmed,
+      geometricReviewNote: geometricReviewNote ?? this.geometricReviewNote,
+      headMetrics: headMetrics ?? this.headMetrics,
+      postureMetrics: postureMetrics ?? this.postureMetrics,
+      debugDetails: debugDetails ?? this.debugDetails,
     );
   }
 
@@ -206,6 +252,9 @@ class ARCaptureResult {
         'warnings': warnings,
         'researchUseOnly': researchUseOnly,
         'landmarkSource': landmarkSource,
+        'captureImagePath': captureImagePath,
+        'geometricReviewConfirmed': geometricReviewConfirmed,
+        'geometricReviewNote': geometricReviewNote,
         'headMetrics': headMetrics?.toJson(),
         'postureMetrics': postureMetrics?.toJson(),
         'debugDetails': debugDetails,

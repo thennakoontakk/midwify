@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/app_colors.dart';
 import 'ar_capture_models.dart';
 
@@ -16,149 +17,245 @@ class HowToScanScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isEn = language == AppLanguage.en;
-    final bool isHead = mode == AppMode.head;
+    final isEnglish = language == AppLanguage.en;
+    final isHead = mode == AppMode.head;
 
-    final String title = isHead
-        ? (isEn
-            ? "How to Scan: Head Analysis"
-            : "ස්කෑන් කරන්නේ කෙසේද: හිස විශ්ලේෂණය")
-        : (isEn
-            ? "How to Scan: Posture Analysis"
-            : "ස්කෑන් කරන්නේ කෙසේද: ඉරියව් විශ්ලේෂණය");
+    final t = isHead
+        ? {
+            'badge':
+                isEnglish ? 'Head Screening Guide' : 'හිස පරීක්ෂණ මාර්ගෝපදේශය',
+            'title': isEnglish
+                ? 'Set Up A Clear Head Capture'
+                : 'පැහැදිලි හිස ග්‍රහණයක් සකස් කරන්න',
+            'description': isEnglish
+                ? 'Follow these steps carefully to reduce retakes and improve head-shape measurements.'
+                : 'නැවත ග්‍රහණ අවම කර හිස හැඩ මිනුම් වැඩිදියුණු කිරීමට මෙම පියවර සැලකිලිමත්ව අනුගමනය කරන්න.',
+            'button':
+                isEnglish ? 'Start Head Screening' : 'හිස පරීක්ෂණය ආරම්භ කරන්න',
+            'steps': [
+              {
+                'title': isEnglish ? 'Camera angle' : 'කැමරා කෝණය',
+                'description': isEnglish
+                    ? 'Hold the camera at a slight top-down angle, around 30-45 degrees above the baby’s head.'
+                    : 'ළදරුවාගේ හිසට ඉහළින් අංශක 30-45 පමණ සුළු ඉහළ කෝණයකින් කැමරාව තබාගන්න.',
+                'icon': Icons.camera_alt_rounded,
+              },
+              {
+                'title': isEnglish
+                    ? 'Keep the whole face visible'
+                    : 'සම්පූර්ණ මුහුණ පෙනෙන ලෙස තබන්න',
+                'description': isEnglish
+                    ? 'The forehead, temples, nose, and chin should stay inside the frame without clipping.'
+                    : 'නළල, දෙපස, නාසය සහ නිකට කැපී යාමකින් තොරව රාමුව තුළ පෙනිය යුතුය.',
+                'icon': Icons.face_4_rounded,
+              },
+              {
+                'title':
+                    isEnglish ? 'Use even lighting' : 'සමාන ආලෝකය භාවිත කරන්න',
+                'description': isEnglish
+                    ? 'Avoid harsh shadows so the facial landmarks can be mapped more reliably.'
+                    : 'මුහුණු ලෑන්ඩ්මාර්ක් වඩාත් විශ්වාසදායකව හඳුනාගැනීමට දැඩි සෙවනැලි වලක්වන්න.',
+                'icon': Icons.wb_sunny_outlined,
+              },
+            ],
+          }
+        : {
+            'badge': isEnglish
+                ? 'Posture Screening Guide'
+                : 'ඉරියව් පරීක්ෂණ මාර්ගෝපදේශය',
+            'title': isEnglish
+                ? 'Set Up A Clear Body Capture'
+                : 'පැහැදිලි ශරීර ග්‍රහණයක් සකස් කරන්න',
+            'description': isEnglish
+                ? 'Follow these steps carefully to improve shoulder, hip, and trunk alignment review.'
+                : 'උරහිස්, උකුල් සහ ශරීර මැද පෙළගැස්ම වඩාත් හොඳින් සමාලෝචනය කිරීමට මෙම පියවර සැලකිලිමත්ව අනුගමනය කරන්න.',
+            'button': isEnglish
+                ? 'Start Posture Screening'
+                : 'ඉරියව් පරීක්ෂණය ආරම්භ කරන්න',
+            'steps': [
+              {
+                'title': isEnglish
+                    ? 'Show the full torso'
+                    : 'සම්පූර්ණ කඳ පෙනෙන ලෙස තබන්න',
+                'description': isEnglish
+                    ? 'Keep both shoulders, both hips, and the full trunk visible in the frame.'
+                    : 'උරහිස් දෙක, උකුල් දෙක සහ සම්පූර්ණ කඳ රාමුව තුළ පැහැදිලිව පෙනෙන ලෙස තබන්න.',
+                'icon': Icons.accessibility_new_rounded,
+              },
+              {
+                'title': isEnglish
+                    ? 'Use a flat surface'
+                    : 'සමතලා මතුපිටක් භාවිත කරන්න',
+                'description': isEnglish
+                    ? 'Place the baby on a flat, firm surface so the body can rest as straight as possible.'
+                    : 'ශරීරය හැකි තරම් කෙළින් විවේක ගත හැකි ලෙස ළදරුවා සමතලා, ස්ථිර මතුපිටක් මත තබන්න.',
+                'icon': Icons.straighten_rounded,
+              },
+              {
+                'title':
+                    isEnglish ? 'Capture from above' : 'ඉහළින් ග්‍රහණය කරන්න',
+                'description': isEnglish
+                    ? 'Hold the camera directly above the baby for clearer shoulder and hip alignment.'
+                    : 'උරහිස් සහ උකුල් පෙළගැස්ම පැහැදිලිව දැකගැනීමට කැමරාව ළදරුවාට සෘජුවම ඉහළින් තබාගන්න.',
+                'icon': Icons.photo_camera_back_rounded,
+              },
+            ],
+          };
 
-    final String desc = isHead
-        ? (isEn
-            ? "For accurate cranial metrics, please follow these guidelines carefully."
-            : "නිවැරදි කපාල මිනුම් සඳහා කරුණාකර මෙම මාර්ගෝපදේශ ප්‍රවේශමෙන් අනුගමනය කරන්න.")
-        : (isEn
-            ? "For accurate posture analysis, please follow these guidelines carefully."
-            : "නිවැරදි ඉරියව් විශ්ලේෂණය සඳහා කරුණාකර මෙම මාර්ගෝපදේශ ප්‍රවේශමෙන් අනුගමනය කරන්න.");
+    final steps = (t['steps']! as List<Map<String, Object>>);
 
-    final String btnText = isEn ? "I Understand ->" : "මට තේරෙනවා ->";
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(
-            title,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            desc,
-            style: const TextStyle(
-              fontSize: 16,
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 40),
-          Expanded(
-            child: isHead ? _buildHeadGuide(isEn) : _buildPostureGuide(isEn),
-          ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: onUnderstand,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.white,
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: AppColors.primaryLight),
               ),
-              elevation: 0,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.primaryLight,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      t['badge']! as String,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    t['title']! as String,
+                    style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    t['description']! as String,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: AppColors.textSecondary,
+                      height: 1.45,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
             ),
-            child: Text(
-              btnText,
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            const SizedBox(height: 20),
+            for (var i = 0; i < steps.length; i++) ...[
+              _buildGuideCard(
+                stepNumber: i + 1,
+                icon: steps[i]['icon']! as IconData,
+                title: steps[i]['title']! as String,
+                description: steps[i]['description']! as String,
+              ),
+              if (i != steps.length - 1) const SizedBox(height: 14),
+            ],
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: onUnderstand,
+              icon:
+                  const Icon(Icons.arrow_forward_rounded, color: Colors.white),
+              label: Text(
+                t['button']! as String,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                elevation: 0,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildHeadGuide(bool isEn) {
-    return ListView(
-      children: [
-        _buildGuideItem(
-          icon: Icons.camera_front,
-          title: isEn ? "1. Camera Angle" : "1. කැමරා කෝණය",
-          description: isEn
-              ? "Hold the camera at a slight top-down angle (30-45 degrees above the baby's head). The forehead must be clearly visible."
-              : "ළදරුවාගේ හිසට ඉහළින් අංශක 30-45 ක කෝණයකින් කැමරාව තබාගන්න. නළල පැහැදිලිව පෙනිය යුතුය.",
-        ),
-        _buildGuideItem(
-          icon: Icons.face,
-          title: isEn ? "2. Full Face in Frame" : "2. සම්පූර්ණ මුහුණ රාමුව තුළ",
-          description: isEn
-              ? "Ensure the baby's entire face (from chin to top of forehead) is inside the camera frame."
-              : "ළදරුවාගේ සම්පූර්ණ මුහුණ (නිකට සිට නළල මුදුන දක්වා) කැමරා රාමුව තුළ ඇති බවට වග බලා ගන්න.",
-        ),
-        _buildGuideItem(
-          icon: Icons.wb_sunny_outlined,
-          title: isEn ? "3. Good Lighting" : "3. හොඳ ආලෝකකරණයක්",
-          description: isEn
-              ? "Ensure the room is well-lit so facial landmarks can be accurately mapped."
-              : "මුහුණේ ලක්ෂණ නිවැරදිව සිතියම් ගත කිරීම සඳහා කාමරය හොඳින් ආලෝකමත් කර ඇති බවට වග බලා ගන්න.",
-        ),
-      ],
-    );
-  }
-
-  Widget _buildPostureGuide(bool isEn) {
-    return ListView(
-      children: [
-        _buildGuideItem(
-          icon: Icons.accessibility_new,
-          title: isEn ? "1. Full Body Visible" : "1. සම්පූර්ණ සිරුර පෙනෙන සේ",
-          description: isEn
-              ? "Ensure the baby's entire body (shoulders to hips) is visible in the frame."
-              : "ළදරුවාගේ සම්පූර්ණ සිරුර (උරහිස් සිට උකුල දක්වා) රාමුව තුළ පෙනෙන බවට වග බලා ගන්න.",
-        ),
-        _buildGuideItem(
-          icon: Icons.straighten,
-          title: isEn ? "2. Flat Surface" : "2. සමතලා මතුපිටක්",
-          description: isEn
-              ? "Place the baby on a flat, firm surface. Ensure they are lying as straight as possible."
-              : "ළදරුවා සමතලා, ස්ථිර මතුපිටක් මත තබන්න. හැකි තරම් කෙළින් වැතිර සිටින බවට වග බලා ගන්න.",
-        ),
-        _buildGuideItem(
-          icon: Icons.camera_alt,
-          title: isEn ? "3. Direct Overhead Angle" : "3. සෘජුව ඉහළින් ඇති කෝණය",
-          description: isEn
-              ? "Hold the camera directly above the baby (90-degree angle) for accurate shoulder and hip measurements."
-              : "නිවැරදි උරහිස් සහ උකුල් මිනුම් සඳහා කැමරාව ළදරුවාට සෘජුවම ඉහළින් (අංශක 90 කෝණයකින්) තබාගන්න.",
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGuideItem({
+  Widget _buildGuideCard({
+    required int stepNumber,
     required IconData icon,
     required String title,
     required String description,
   }) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24.0),
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: AppColors.primaryLight),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.1),
-              shape: BoxShape.circle,
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.circular(18),
             ),
-            child: Icon(icon, color: AppColors.primary, size: 32),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(icon, size: 24, color: AppColors.primary),
+                Positioned(
+                  right: 6,
+                  top: 6,
+                  child: Container(
+                    width: 18,
+                    height: 18,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Text(
+                        '$stepNumber',
+                        style: const TextStyle(
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -168,18 +265,18 @@ class HowToScanScreen extends StatelessWidget {
                 Text(
                   title,
                   style: const TextStyle(
-                    fontSize: 18,
+                    fontSize: 17,
                     fontWeight: FontWeight.bold,
                     color: AppColors.textPrimary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 6),
                 Text(
                   description,
                   style: const TextStyle(
                     fontSize: 14,
                     color: AppColors.textSecondary,
-                    height: 1.4,
+                    height: 1.45,
                   ),
                 ),
               ],

@@ -48,19 +48,27 @@ class HeadLandmarkerBridge(
         }
 
         val mpImage = BitmapImageBuilder(bitmap).build()
-        val result = getFaceLandmarker().detect(mpImage)
-        val face = result.faceLandmarks().firstOrNull()
-            ?: return mapOf(
-                "source" to RUNTIME_SOURCE,
-                "landmarks" to emptyList<Map<String, Double>>(),
-                "warnings" to listOf("Face landmarker task detected no face in the captured image."),
-            )
+        try {
+            val result = getFaceLandmarker().detect(mpImage)
+            val face = result.faceLandmarks().firstOrNull()
+                ?: return mapOf(
+                    "source" to RUNTIME_SOURCE,
+                    "landmarks" to emptyList<Map<String, Double>>(),
+                    "warnings" to listOf("Face landmarker task detected no face in the captured image."),
+                )
 
-        return mapOf(
-            "source" to RUNTIME_SOURCE,
-            "landmarks" to face.map(::serializeLandmark),
-            "warnings" to emptyList<String>(),
-        )
+            return mapOf(
+                "source" to RUNTIME_SOURCE,
+                "landmarks" to face.map(::serializeLandmark),
+                "warnings" to emptyList<String>(),
+            )
+        } catch (t: Throwable) {
+            close()
+            throw IllegalStateException(
+                "Face landmarker task runtime failed to initialize in this build.",
+                t,
+            )
+        }
     }
 
     @Synchronized

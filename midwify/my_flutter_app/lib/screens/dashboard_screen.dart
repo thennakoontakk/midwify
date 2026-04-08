@@ -4,6 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:fl_chart/fl_chart.dart';
 import '../core/app_colors.dart';
 import '../core/app_drawer.dart';
+import '../screens/ar_capture/ar_capture_models.dart';
+import '../services/child_report_service.dart';
 
 /// Dashboard screen for the Midwify app.
 /// Displays live statistics, charts, upcoming EDDs, and recent patients
@@ -32,6 +34,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   int _trimester3 = 0;
   List<Map<String, dynamic>> _upcomingEdds = [];
   List<Map<String, dynamic>> _recentPatients = [];
+  List<ChildReportData> _recentArReports = [];
 
   @override
   void initState() {
@@ -158,6 +161,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
         return tB.compareTo(tA);
       });
 
+      // Also fetch recent Child AR Reports
+      final arReports = await ChildReportService.getReports();
+      final recentAr = arReports.take(3).toList();
+
       setState(() {
         _patients = patients;
         _totalPatients = patients.length;
@@ -171,6 +178,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
         _trimester3 = t3;
         _upcomingEdds = upcoming.take(5).toList();
         _recentPatients = sorted.take(5).toList();
+        _recentArReports = recentAr;
         _loading = false;
       });
     } catch (e) {
@@ -266,6 +274,12 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     // Recent Patients
                     _buildRecentPatients(),
                     const SizedBox(height: 24),
+
+                    // Recent Child AR Reports
+                    if (_recentArReports.isNotEmpty) ...[
+                      _buildRecentArReports(),
+                      const SizedBox(height: 24),
+                    ],
                   ],
                 ),
               ),
@@ -755,6 +769,90 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 );
               }).toList(),
             ),
+    );
+  }
+
+  // ── Recent Child AR Reports ─────────────────────────────────────────
+  Widget _buildRecentArReports() {
+    return _ChartCard(
+      title: 'Recent AR Scans',
+      trailing: Icon(Icons.document_scanner_rounded, color: AppColors.primary, size: 20),
+      child: Column(
+        children: _recentArReports.map((report) {
+          final isHead = report.mode.toLowerCase() == 'head';
+          final badgeColor = report.result.riskBand == RiskBand.lowRisk
+              ? AppColors.success
+              : (report.result.riskBand == RiskBand.review ? AppColors.warning : AppColors.danger);
+          final badgeBg = report.result.riskBand == RiskBand.lowRisk
+              ? AppColors.successLight
+              : (report.result.riskBand == RiskBand.review ? AppColors.warningLight : AppColors.dangerLight);
+              
+          final scoreLabel = (report.result.screeningScore * 100).toInt().toString() + '%';
+
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Row(
+              children: [
+                // Icon Box
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: isHead ? AppColors.infoLight : AppColors.primaryLight,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: Icon(
+                      isHead ? Icons.face_retouching_natural : Icons.accessibility_new_rounded,
+                      color: isHead ? AppColors.info : AppColors.primary,
+                      size: 22,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        report.childName.isNotEmpty ? report.childName : 'Unknown Child',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      Text(
+                        '${isHead ? "Cranial" : "Posture"} Scan  •  Score: $scoreLabel',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                // Risk Badge
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: badgeBg,
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    report.result.riskBand.name.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: badgeColor,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }

@@ -94,8 +94,7 @@ class CranioAIResult {
           json['geometrySignals'] as Map? ?? const <String, dynamic>{},
         ),
       ),
-      visualObservations:
-          (json['visualObservations'] as String? ?? '').trim(),
+      visualObservations: (json['visualObservations'] as String? ?? '').trim(),
       urgency: (json['urgency'] as String? ?? 'routine').trim().toLowerCase(),
       recommendation: (json['recommendation'] as String? ?? '').trim(),
       disclaimer: (json['disclaimer'] as String? ?? '').trim(),
@@ -158,8 +157,9 @@ class GeminiCranioService {
   static const String _modelName = 'gemini-2.5-flash';
   static const String _endpoint =
       'https://generativelanguage.googleapis.com/v1beta/models/$_modelName:generateContent';
-  static const int _maxInlineDimension = 1024;
+  static const int _maxInlineDimension = 896;
   static const int _maxInlineBytesWithoutResize = 1024 * 1024;
+  static const Duration _requestTimeout = Duration(seconds: 35);
 
   static const String _systemPrompt = '''
 You are a specialist craniosynostosis screening AI embedded in a Flutter pediatric
@@ -264,7 +264,22 @@ No preamble. Exact schema:
 
   static bool _dotenvLoaded = false;
 
+  static String userVisibleFailureMessage(Object error) {
+    final message = error.toString();
+    if (message.contains('TimeoutException')) {
+      return 'AI-assisted photo review did not respond in time, so this result uses on-device geometry only.';
+    }
+    if (message.contains('GEMINI_API_KEY')) {
+      return 'AI-assisted photo review is not configured in this build, so this result uses on-device geometry only.';
+    }
+    if (message.contains('status 401') || message.contains('status 403')) {
+      return 'AI-assisted photo review was rejected by the server, so this result uses on-device geometry only.';
+    }
+    return 'AI-assisted photo review was unavailable for this scan, so this result uses on-device geometry only.';
+  }
+
   Future<CranioAIResult> analyzeWithAI({
+    required AppLanguage language,
     required String imagePath,
     String? secondaryImagePath,
     required CranialResult geometry,
@@ -294,6 +309,9 @@ No preamble. Exact schema:
         if (secondaryImagePath != null && secondaryImagePath.trim().isNotEmpty)
           _prepareInlineImage(secondaryImagePath),
       ];
+      final languageInstruction = language == AppLanguage.si
+          ? 'Return keyFindings, visualObservations, recommendation, and disclaimer in Sinhala. Keep riskLevel, riskScore, headShapeClassification, confidence, urgency, and geometrySignals enum values in English exactly as defined in the schema.'
+          : 'Return all user-facing prose fields in English. Keep riskLevel, riskScore, headShapeClassification, confidence, urgency, and geometrySignals enum values in English exactly as defined in the schema.';
       final payload = _buildMeasurementsPayload(
         geometry: geometry,
         metrics: metrics,
@@ -327,7 +345,7 @@ No preamble. Exact schema:
                 },
               {
                 'text':
-                    'Analyze these baby head images and the following cranial scan measurements together. Image 1 is the primary capture used for geometry. Image 2, when present, is a confirmation view. Return JSON only:\n${jsonEncode(payload)}',
+                    '$languageInstruction Analyze these baby head images and the following cranial scan measurements together. Image 1 is the primary capture used for geometry. Image 2, when present, is a confirmation view. Return JSON only:\n${jsonEncode(payload)}',
               },
             ],
           },
@@ -335,11 +353,13 @@ No preamble. Exact schema:
       };
 
       debugPrint('[HEAD_AI] Posting multimodal request to Gemini');
-      final response = await http.post(
-        Uri.parse('$_endpoint?key=$apiKey'),
-        headers: const {'Content-Type': 'application/json'},
-        body: jsonEncode(requestBody),
-      ).timeout(const Duration(seconds: 25));
+      final response = await http
+          .post(
+            Uri.parse('$_endpoint?key=$apiKey'),
+            headers: const {'Content-Type': 'application/json'},
+            body: jsonEncode(requestBody),
+          )
+          .timeout(_requestTimeout);
 
       debugPrint(
         '[HEAD_AI] Gemini response status ${response.statusCode}',
@@ -360,7 +380,8 @@ No preamble. Exact schema:
         );
       }
 
-      return CranioAIResult.fromJson(Map<String, dynamic>.from(decoded)).copyWith(
+      return CranioAIResult.fromJson(Map<String, dynamic>.from(decoded))
+          .copyWith(
         modelName: _modelName,
         imageCount: encodedImages.length,
         usageMetadata: _extractUsageMetadata(response.body),
@@ -376,7 +397,7 @@ No preamble. Exact schema:
     if (_dotenvLoaded) {
       return;
     }
-    await dotenv.load(fileName: '.env');
+    await dotenv.load(fileName: 'app.env');
     _dotenvLoaded = true;
   }
 
@@ -386,7 +407,16 @@ No preamble. Exact schema:
     final fallbackMimeType = _detectMimeType(imagePath);
 
     try {
-      if (file.lengthSync() <= _maxInlineBytesWithoutResize) {
+      final decoded = img.decodeImage(originalBytes);
+      if (decoded == null) {
+        throw StateError('Image decode returned null.');
+      }
+
+      final maxDimension = math.max(decoded.width, decoded.height);
+      final shouldResize =
+          maxDimension > _maxInlineDimension ||
+          originalBytes.length > _maxInlineBytesWithoutResize;
+      if (!shouldResize) {
         debugPrint(
           '[HEAD_AI] Using original capture for Gemini inline image (${originalBytes.length} bytes)',
         );
@@ -396,23 +426,19 @@ No preamble. Exact schema:
         );
       }
 
-      final decoded = img.decodeImage(originalBytes);
-      if (decoded == null) {
-        throw StateError('Image decode returned null.');
-      }
-
-      final maxDimension = math.max(decoded.width, decoded.height);
       final processed = maxDimension > _maxInlineDimension
           ? img.copyResize(
               decoded,
-              width: decoded.width >= decoded.height ? _maxInlineDimension : null,
-              height: decoded.height > decoded.width ? _maxInlineDimension : null,
+              width:
+                  decoded.width >= decoded.height ? _maxInlineDimension : null,
+              height:
+                  decoded.height > decoded.width ? _maxInlineDimension : null,
             )
           : decoded;
 
-      final resizedBytes = img.encodeJpg(processed, quality: 85);
+      final resizedBytes = img.encodeJpg(processed, quality: 82);
       debugPrint(
-        '[HEAD_AI] Resized Gemini inline image to ${processed.width}x${processed.height}',
+        '[HEAD_AI] Resized Gemini inline image to ${processed.width}x${processed.height} (${resizedBytes.length} bytes)',
       );
       return _EncodedImage(
         mimeType: 'image/jpeg',

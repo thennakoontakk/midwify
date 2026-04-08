@@ -19,7 +19,8 @@ class CranialAnalysisService {
   factory CranialAnalysisService() => _instance;
   CranialAnalysisService._internal();
 
-  static const String _configuredTaskAsset = 'assets/models/face_landmarker.task';
+  static const String _configuredTaskAsset =
+      'assets/models/face_landmarker.task';
   static const String _taskRuntimeSource = 'mediapipe_face_landmarker_task';
   static const String _fallbackSource = 'mlkit_face_mesh_fallback';
   static const int _maxWorkingImageDimension = 1024;
@@ -36,6 +37,7 @@ class CranialAnalysisService {
 
   Future<ARCaptureResult> analyzeFromPath(
     String imagePath, {
+    AppLanguage language = AppLanguage.en,
     String? secondaryImagePath,
   }) async {
     if (kIsWeb) {
@@ -96,7 +98,8 @@ class CranialAnalysisService {
       final runtimeResult = await _headLandmarkerRuntime.detectFromPath(
         analysisImagePath,
       );
-      if (runtimeResult != null && runtimeResult.landmarks.length > kLmLeftTemple) {
+      if (runtimeResult != null &&
+          runtimeResult.landmarks.length > kLmLeftTemple) {
         // MediaPipe face-landmarker z is typically negative for points closer
         // to camera; the existing cranial camera-angle heuristics were tuned
         // on the opposite sign convention. Normalize z to keep scoring stable.
@@ -117,7 +120,9 @@ class CranialAnalysisService {
         if (faces.isEmpty) {
           return ARCaptureResult.invalid(
             summary: 'No infant face landmarks were detected.',
-            warnings: const ['Retake from the supported oblique top-down frontal view.'],
+            warnings: const [
+              'Retake from the supported oblique top-down frontal view.'
+            ],
             landmarkSource: _fallbackSource,
             debugDetails: {
               'mode': 'head',
@@ -132,8 +137,8 @@ class CranialAnalysisService {
           );
         }
 
-        final dimensions =
-            preparedImage.dimensions ?? await _resolveImageDimensions(analysisImagePath);
+        final dimensions = preparedImage.dimensions ??
+            await _resolveImageDimensions(analysisImagePath);
         if (dimensions == null) {
           return ARCaptureResult.invalid(
             summary: 'The captured head image could not be decoded.',
@@ -148,11 +153,14 @@ class CranialAnalysisService {
           );
         }
 
-        landmarks = _extractLandmarks(faces.first, dimensions.$1, dimensions.$2);
+        landmarks =
+            _extractLandmarks(faces.first, dimensions.$1, dimensions.$2);
         if (landmarks == null) {
           return ARCaptureResult.invalid(
             summary: 'Face landmarks were incomplete for head screening.',
-            warnings: const ['Ensure the forehead, temples, and nose are all visible.'],
+            warnings: const [
+              'Ensure the forehead, temples, and nose are all visible.'
+            ],
             landmarkSource: _fallbackSource,
             debugDetails: {
               'mode': 'head',
@@ -239,6 +247,7 @@ class CranialAnalysisService {
       try {
         debugPrint('[HEAD_AI] Running Gemini multimodal analysis');
         final aiResult = await geminiService.analyzeWithAI(
+          language: language,
           imagePath: analysisImagePath,
           secondaryImagePath: preparedSecondaryImage?.path,
           geometry: cranialResult,
@@ -270,8 +279,11 @@ class CranialAnalysisService {
         );
       } catch (aiError, aiStack) {
         debugPrint('Gemini head analysis failed: $aiError\n$aiStack');
+        final aiFallbackMessage =
+            GeminiCranioService.userVisibleFailureMessage(aiError);
         debugDetails.addAll({
           'aiError': aiError.toString(),
+          'aiFallbackMessage': aiFallbackMessage,
           'aiProvider': geminiService.modelName,
           'fallbackMode': _geometryFallbackSource,
         });
@@ -280,7 +292,7 @@ class CranialAnalysisService {
           derivedMetrics: derivedMetrics,
           landmarkSource: landmarkSource,
           landmarkWarnings: landmarkWarnings,
-          aiError: aiError.toString(),
+          aiFallbackMessage: aiFallbackMessage,
           debugDetails: debugDetails,
         );
       }
@@ -450,7 +462,7 @@ class CranialAnalysisService {
     required HeadScreeningMetrics derivedMetrics,
     required String landmarkSource,
     required List<String> landmarkWarnings,
-    required String aiError,
+    required String aiFallbackMessage,
     required Map<String, dynamic> debugDetails,
   }) {
     final riskBand = switch (cranialResult.riskBand) {
@@ -473,7 +485,7 @@ class CranialAnalysisService {
 
     final warnings = <String>[
       'Research-only pipeline: ${landmarkSource == _taskRuntimeSource ? 'MediaPipe face landmarker task' : 'fallback face landmarks'} geometry scoring fallback was used because Gemini AI analysis failed.',
-      'Gemini AI error: $aiError',
+      aiFallbackMessage,
       ...landmarkWarnings,
       ...cranialResult.warnings,
       ...cranialResult.reasons,
@@ -531,7 +543,7 @@ class CranialAnalysisService {
     }
 
     debugPrint(
-      '[HEAD_AI] Downscaling large input (${fileSize} bytes) before native analysis',
+      '[HEAD_AI] Downscaling large input ($fileSize bytes) before native analysis',
     );
     final originalBytes = await originalFile.readAsBytes();
     final decoded = img.decodeImage(originalBytes);
@@ -600,7 +612,8 @@ class CranialAnalysisService {
     final centerX = (minX + maxX) / 2.0;
     final centerY = (minY + maxY) / 2.0;
 
-    final templeSpan = dist2D(landmarks[kLmLeftTemple], landmarks[kLmRightTemple]);
+    final templeSpan =
+        dist2D(landmarks[kLmLeftTemple], landmarks[kLmRightTemple]);
     final foreheadSpan =
         dist2D(landmarks[kLmLeftForehead], landmarks[kLmRightForehead]);
     final noseDepth = dist2D(landmarks[kLmGlabella], landmarks[kLmNoseTip]);

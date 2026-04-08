@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../core/app_colors.dart';
+import 'ar_capture_localization.dart';
 import 'ar_capture_models.dart';
 
 class DiagnosisScreen extends StatelessWidget {
@@ -79,6 +80,10 @@ class DiagnosisScreen extends StatelessWidget {
                     if (mode == AppMode.posture &&
                         result.postureMetrics != null)
                       _buildPostureMetricsCard(t, result.postureMetrics!),
+                    if (_showPostureReviewCard) ...[
+                      const SizedBox(height: 16),
+                      _buildPostureReviewCard(),
+                    ],
                     if (_hasWarnings) ...[
                       const SizedBox(height: 16),
                       _buildWarningsCard(t),
@@ -99,69 +104,20 @@ class DiagnosisScreen extends StatelessWidget {
 
   bool get _hasWarnings => result.warnings.isNotEmpty || !result.supportedView;
 
-  Map<String, String> _strings(AppLanguage language) {
-    const english = {
-      'title': 'Research Results',
-      'headModel': 'Head Research Pipeline',
-      'postureModel': 'Posture Research Pipeline',
-      'captureQuality': 'Capture Quality',
-      'screeningScore': 'Research Score',
-      'riskBand': 'Signal Band',
-      'impactLevel': 'Research Signal',
-      'supportedView': 'Supported View',
-      'yes': 'Yes',
-      'no': 'No',
-      'summary': 'Summary',
-      'warnings': 'Warnings',
-      'headMetrics': 'Head Metrics',
-      'postureMetrics': 'Posture Metrics',
-      'researchDisclaimer':
-          'Experimental research output only. Not validated for diagnosis, referral, or treatment decisions.',
-      'landmarkSource': 'Landmark Source',
-      'retake': 'Retake Photo',
-      'finish': 'Back to Home',
-      'tool': 'Open Geometric Tool',
-      'invalid':
-          'No usable infant image was detected for screening. Retake the photo with the infant clearly visible.',
-      'invalidTitle': 'Screening Unavailable',
-      'ci': 'Cranial Index',
-      'cvai': 'Cranial Vault Asymmetry Index',
-      'symmetry': 'Facial Symmetry Offset',
-      'headQuality': 'Landmark Quality',
-      'angleDelta': 'Top-Down Angle Delta',
-      'imageClassifier': 'Image Classifier',
-      'abnormalProb': 'Abnormal Probability',
-      'normalProb': 'Normal Probability',
-      'aiDetails': 'AI Details',
-      'headShape': 'Head Shape',
-      'aiRiskLevel': 'AI Risk Level',
-      'aiConfidence': 'AI Confidence',
-      'aiUrgency': 'AI Urgency',
-      'visualObservation': 'Visual Observation',
-      'recommendationTitle': 'Recommendation',
-      'keyFindings': 'Key Findings',
-      'aiProvider': 'AI Provider',
-      'inputImages': 'Input Images',
-      'totalTokens': 'Total Tokens',
-      'promptTokens': 'Prompt Tokens',
-      'fallbackMode': 'Fallback Mode',
-      'cephalicRisk': 'Cephalic Index Risk',
-      'asymmetryRisk': 'Asymmetry Risk',
-      'orbitalRisk': 'Orbital Symmetry Risk',
-      'aiError': 'AI Error',
-      'shoulderTilt': 'Shoulder Tilt',
-      'hipTilt': 'Hip Tilt',
-      'trunkTilt': 'Trunk Tilt',
-      'headTilt': 'Head Tilt',
-      'midlineOffset': 'Midline Offset',
-      'visibility': 'Visibility Quality',
-      'cameraRoll': 'Camera Roll',
-      'percent': '%',
-      'degrees': 'deg',
-      'ratio': 'ratio',
-    };
+  bool get _showPostureReviewCard {
+    if (mode != AppMode.posture || result.postureMetrics == null) {
+      return false;
+    }
 
-    return language == AppLanguage.en ? english : english;
+    return result.riskBand == RiskBand.refer || result.geometricReviewConfirmed;
+  }
+
+  Map<String, String> _strings(AppLanguage language) {
+    return ARCaptureLocalization.diagnosis(language);
+  }
+
+  Map<String, String> get _reviewStrings {
+    return ARCaptureLocalization.geometricTool(language);
   }
 
   Widget _buildHeroCard({
@@ -177,7 +133,7 @@ class DiagnosisScreen extends StatelessWidget {
         border: Border.all(color: AppColors.primaryLight),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -190,13 +146,17 @@ class DiagnosisScreen extends StatelessWidget {
             height: 96,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: accent.withOpacity(0.14),
+              color: accent.withValues(alpha: 0.14),
             ),
             child: Icon(icon, size: 48, color: accent),
           ),
           const SizedBox(height: 16),
           Text(
-            result.riskBand.impactLevelLabel,
+            ARCaptureLocalization.localizedImpactLevel(
+              language,
+              result.riskBand,
+              t,
+            ),
             style: TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -214,7 +174,7 @@ class DiagnosisScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           Text(
-            result.summary,
+            ARCaptureLocalization.localizeResultText(language, result.summary),
             textAlign: TextAlign.center,
             style: const TextStyle(
               fontSize: 15,
@@ -266,8 +226,22 @@ class DiagnosisScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          _summaryRow(t['impactLevel']!, result.riskBand.impactLevelLabel),
-          _summaryRow(t['riskBand']!, result.riskBand.label),
+          _summaryRow(
+            t['impactLevel']!,
+            ARCaptureLocalization.localizedImpactLevel(
+              language,
+              result.riskBand,
+              t,
+            ),
+          ),
+          _summaryRow(
+            t['riskBand']!,
+            ARCaptureLocalization.localizedRiskBandLabel(
+              language,
+              result.riskBand,
+              t,
+            ),
+          ),
           _summaryRow(
             t['supportedView']!,
             result.supportedView ? t['yes']! : t['no']!,
@@ -275,7 +249,12 @@ class DiagnosisScreen extends StatelessWidget {
           _summaryRow(t['landmarkSource']!, result.landmarkSource),
           const SizedBox(height: 6),
           Text(
-            _impactDescription(),
+            ARCaptureLocalization.impactDescription(
+              language,
+              mode,
+              result,
+              t,
+            ),
             style: const TextStyle(
               fontSize: 13,
               color: AppColors.textSecondary,
@@ -293,7 +272,7 @@ class DiagnosisScreen extends StatelessWidget {
     return _metricsCard(
       title: t['headMetrics']!,
       children: [
-        _metricTile(t['ci']!, '${metrics.cranialIndex.toStringAsFixed(2)}'),
+        _metricTile(t['ci']!, metrics.cranialIndex.toStringAsFixed(2)),
         _metricTile(
           t['cvai']!,
           '${metrics.cranialVaultAsymmetryIndex.toStringAsFixed(2)} ${t['percent']}',
@@ -307,7 +286,7 @@ class DiagnosisScreen extends StatelessWidget {
           '${metrics.landmarkQuality.toStringAsFixed(0)} ${t['percent']}',
         ),
         _metricTile(
-          'Cephalic Proportion Score',
+          t['cephalicProportion']!,
           '${metrics.cephalicProportionScore.toStringAsFixed(2)} ${t['percent']}',
         ),
         _metricTile(
@@ -316,7 +295,10 @@ class DiagnosisScreen extends StatelessWidget {
         ),
         _metricTile(
           t['imageClassifier']!,
-          metrics.classifierDecision,
+          ARCaptureLocalization.localizeValue(
+            language,
+            metrics.classifierDecision,
+          ),
         ),
         _metricTile(
           t['abnormalProb']!,
@@ -369,6 +351,70 @@ class DiagnosisScreen extends StatelessWidget {
     );
   }
 
+  Widget _buildPostureReviewCard() {
+    final t = _reviewStrings;
+    final statusColor =
+        result.geometricReviewConfirmed ? AppColors.success : AppColors.warning;
+    final statusBackground = result.geometricReviewConfirmed
+        ? AppColors.successLight
+        : AppColors.warningLight;
+    final diagnosisStrings = _strings(language);
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: AppColors.primaryLight),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            diagnosisStrings['geometricReview'] ?? t['title']!,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: statusBackground,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '${diagnosisStrings['reviewStatus'] ?? t['status']!}: '
+              '${result.geometricReviewConfirmed ? (diagnosisStrings['reviewConfirmed'] ?? t['confirmed']!) : (diagnosisStrings['reviewPending'] ?? t['pending']!)}',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: statusColor,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Text(
+            result.geometricReviewConfirmed
+                ? ARCaptureLocalization.localizeResultText(
+                    language,
+                    result.geometricReviewNote,
+                  )
+                : t['subtitle']!,
+            style: const TextStyle(
+              fontSize: 14,
+              color: AppColors.textSecondary,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildHeadAiDetailsCard(
     Map<String, String> t,
     HeadScreeningMetrics metrics,
@@ -378,7 +424,6 @@ class DiagnosisScreen extends StatelessWidget {
     final aiImageCount = result.debugDetails['aiImageCount'];
     final aiUsageMetadata = result.debugDetails['aiUsageMetadata'];
     final fallbackMode = result.debugDetails['fallbackMode'] as String?;
-    final aiError = result.debugDetails['aiError'] as String?;
 
     final signalMap = geometrySignals is Map
         ? Map<String, dynamic>.from(geometrySignals)
@@ -411,10 +456,34 @@ class DiagnosisScreen extends StatelessWidget {
             spacing: 12,
             runSpacing: 12,
             children: [
-              _metricTile(t['headShape']!, metrics.headShapeLabel),
-              _metricTile(t['aiRiskLevel']!, metrics.aiRiskLevel),
-              _metricTile(t['aiConfidence']!, metrics.aiConfidence),
-              _metricTile(t['aiUrgency']!, metrics.aiUrgency),
+              _metricTile(
+                t['headShape']!,
+                ARCaptureLocalization.localizeValue(
+                  language,
+                  metrics.headShapeLabel,
+                ),
+              ),
+              _metricTile(
+                t['aiRiskLevel']!,
+                ARCaptureLocalization.localizeValue(
+                  language,
+                  metrics.aiRiskLevel,
+                ),
+              ),
+              _metricTile(
+                t['aiConfidence']!,
+                ARCaptureLocalization.localizeValue(
+                  language,
+                  metrics.aiConfidence,
+                ),
+              ),
+              _metricTile(
+                t['aiUrgency']!,
+                ARCaptureLocalization.localizeValue(
+                  language,
+                  metrics.aiUrgency,
+                ),
+              ),
               if (aiProvider != null && aiProvider.isNotEmpty)
                 _metricTile(t['aiProvider']!, aiProvider),
               if (aiImageCount != null)
@@ -430,21 +499,33 @@ class DiagnosisScreen extends StatelessWidget {
                   usageMap['promptTokenCount'].toString(),
                 ),
               if (fallbackMode != null && fallbackMode.isNotEmpty)
-                _metricTile(t['fallbackMode']!, fallbackMode),
+                _metricTile(
+                  t['fallbackMode']!,
+                  ARCaptureLocalization.localizeValue(language, fallbackMode),
+                ),
               if (signalMap['cephalicIndexRisk'] != null)
                 _metricTile(
                   t['cephalicRisk']!,
-                  signalMap['cephalicIndexRisk'].toString(),
+                  ARCaptureLocalization.localizeValue(
+                    language,
+                    signalMap['cephalicIndexRisk'].toString(),
+                  ),
                 ),
               if (signalMap['asymmetryRisk'] != null)
                 _metricTile(
                   t['asymmetryRisk']!,
-                  signalMap['asymmetryRisk'].toString(),
+                  ARCaptureLocalization.localizeValue(
+                    language,
+                    signalMap['asymmetryRisk'].toString(),
+                  ),
                 ),
               if (signalMap['orbitalSymmetryRisk'] != null)
                 _metricTile(
                   t['orbitalRisk']!,
-                  signalMap['orbitalSymmetryRisk'].toString(),
+                  ARCaptureLocalization.localizeValue(
+                    language,
+                    signalMap['orbitalSymmetryRisk'].toString(),
+                  ),
                 ),
             ],
           ),
@@ -452,14 +533,20 @@ class DiagnosisScreen extends StatelessWidget {
             const SizedBox(height: 16),
             _detailBlock(
               t['visualObservation']!,
-              metrics.visualObservations,
+              ARCaptureLocalization.localizeResultText(
+                language,
+                metrics.visualObservations,
+              ),
             ),
           ],
           if (metrics.recommendation.isNotEmpty) ...[
             const SizedBox(height: 12),
             _detailBlock(
               t['recommendationTitle']!,
-              metrics.recommendation,
+              ARCaptureLocalization.localizeResultText(
+                language,
+                metrics.recommendation,
+              ),
             ),
           ],
           if (metrics.keyFindings.isNotEmpty) ...[
@@ -490,7 +577,10 @@ class DiagnosisScreen extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        finding,
+                        ARCaptureLocalization.localizeResultText(
+                          language,
+                          finding,
+                        ),
                         style: const TextStyle(
                           fontSize: 14,
                           color: AppColors.textPrimary,
@@ -501,13 +591,6 @@ class DiagnosisScreen extends StatelessWidget {
                 ),
               ),
           ],
-          if (aiError != null && aiError.isNotEmpty) ...[
-            const SizedBox(height: 12),
-            _detailBlock(
-              t['aiError']!,
-              aiError,
-            ),
-          ],
         ],
       ),
     );
@@ -515,9 +598,11 @@ class DiagnosisScreen extends StatelessWidget {
 
   Widget _buildWarningsCard(Map<String, String> t) {
     final warnings = <String>[
-      if (!result.supportedView)
-        'The capture did not match the supported screening view.',
-      ...result.warnings,
+      if (!result.supportedView) t['unsupportedCapture']!,
+      ...result.warnings.map(
+        (warning) =>
+            ARCaptureLocalization.localizeResultText(language, warning),
+      ),
     ];
 
     return Container(
@@ -620,7 +705,7 @@ class DiagnosisScreen extends StatelessWidget {
                     height: 120,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.grey.withOpacity(0.18),
+                      color: Colors.grey.withValues(alpha: 0.18),
                     ),
                     child: const Icon(
                       Icons.hide_image_outlined,
@@ -637,7 +722,12 @@ class DiagnosisScreen extends StatelessWidget {
                       border: Border.all(color: AppColors.primaryLight),
                     ),
                     child: Text(
-                      result.summary.isNotEmpty ? result.summary : t['invalid']!,
+                      result.summary.isNotEmpty
+                          ? ARCaptureLocalization.localizeResultText(
+                              language,
+                              result.summary,
+                            )
+                          : t['invalid']!,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         fontSize: 15,
@@ -682,10 +772,12 @@ class DiagnosisScreen extends StatelessWidget {
       ];
     }
 
-    if (result.riskBand == RiskBand.refer && mode == AppMode.posture) {
+    if (result.riskBand == RiskBand.refer &&
+        mode == AppMode.posture &&
+        !result.geometricReviewConfirmed) {
       return [
         _buildPrimaryButton(
-          icon: Icons.square_foot,
+          icon: Icons.verified_outlined,
           label: t['tool']!,
           onPressed: onOpenGeometricTool,
           color: Colors.blueAccent,
@@ -789,7 +881,7 @@ class DiagnosisScreen extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Column(
@@ -950,36 +1042,6 @@ class DiagnosisScreen extends StatelessWidget {
         return Icons.error_outline_rounded;
       case RiskBand.unavailable:
         return Icons.help_outline;
-    }
-  }
-
-  String _impactDescription() {
-    if (!result.supportedView) {
-      return 'The capture quality was not strong enough to estimate a reliable research signal. Retake the image before relying on this output.';
-    }
-
-    if (mode == AppMode.head) {
-      switch (result.riskBand) {
-        case RiskBand.lowRisk:
-          return 'Low head-shape research signal in this capture.';
-        case RiskBand.review:
-          return 'Moderate head-shape research signal. Repeat capture and review carefully.';
-        case RiskBand.refer:
-          return 'High-priority head research signal. This may justify further study, not a diagnosis.';
-        case RiskBand.unavailable:
-          return 'No head research signal is available for this capture.';
-      }
-    }
-
-    switch (result.riskBand) {
-      case RiskBand.lowRisk:
-        return 'Low posture research signal in this capture.';
-      case RiskBand.review:
-        return 'Moderate posture research signal. Repeat capture and review carefully.';
-      case RiskBand.refer:
-        return 'High-priority posture research signal. This may justify further study, not a diagnosis.';
-      case RiskBand.unavailable:
-        return 'No posture research signal is available for this capture.';
     }
   }
 }

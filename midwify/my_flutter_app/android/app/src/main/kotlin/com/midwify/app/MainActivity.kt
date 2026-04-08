@@ -29,11 +29,17 @@ class MainActivity : FlutterActivity() {
 
                     try {
                         result.success(headLandmarkerBridge.detectFromPath(imagePath))
-                    } catch (e: Exception) {
+                    } catch (t: Throwable) {
+                        if (::headLandmarkerBridge.isInitialized) {
+                            headLandmarkerBridge.close()
+                        }
                         result.error(
                             "head_landmarker_error",
-                            e.message ?: "Head landmark detection failed.",
-                            null,
+                            t.message ?: "Head landmark detection failed.",
+                            mapOf(
+                                "type" to t.javaClass.name,
+                                "cause" to t.cause?.toString(),
+                            ),
                         )
                     }
                 }

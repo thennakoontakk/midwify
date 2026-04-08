@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import '../../core/app_colors.dart';
 import '../../services/ar_capture/ml_service.dart';
 import '../../widgets/ar_capture/camera_view.dart';
+import 'ar_capture_localization.dart';
 import 'ar_capture_models.dart';
 
 class HeadCaptureScreen extends StatefulWidget {
@@ -26,30 +27,27 @@ class HeadCaptureScreen extends StatefulWidget {
 class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
   final GlobalKey<CameraViewState> _cameraKey = GlobalKey<CameraViewState>();
   final ImagePicker _picker = ImagePicker();
-  static const List<String> _processingThoughts = [
-    'Lighting from the front helps the scan read the forehead and temples.',
-    'A retake from the supported angle is better than relying on a weak image.',
-    'Tummy time while awake can reduce constant pressure on one side of the head.',
-    'If feeding difficulty or unusual irritability is present, clinical review matters more than any app score.',
-    'Clear forehead, temple, and nose visibility improves head-shape measurement quality.',
-  ];
 
   bool _isProcessing = false;
   String? _primaryImagePath;
   Timer? _processingThoughtTimer;
   int _processingThoughtIndex = 0;
 
+  List<String> get _processingThoughts =>
+      ARCaptureLocalization.headProcessingThoughts(widget.language);
+
   Future<void> _processImage(
     String imagePath, {
     String? secondaryImagePath,
   }) async {
+    final t = ARCaptureLocalization.headCapture(widget.language);
     if (imagePath.isEmpty || imagePath == 'null' || imagePath == 'undefined') {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No image captured. Please take a photo first.'),
+          SnackBar(
+            content: Text(t['noImage']!),
             backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -62,6 +60,7 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
       final result = await MLService().runInference(
         imagePath,
         AppMode.head,
+        language: widget.language,
         secondaryImagePath: secondaryImagePath,
       );
 
@@ -71,8 +70,11 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
             SnackBar(
               content: Text(
                 result.summary.isNotEmpty
-                    ? result.summary
-                    : 'No usable head image was detected. Retake with the infant in frame.',
+                    ? ARCaptureLocalization.localizeResultText(
+                        widget.language,
+                        result.summary,
+                      )
+                    : t['invalidFallback']!,
               ),
               backgroundColor: Colors.orange,
               duration: const Duration(seconds: 4),
@@ -87,7 +89,10 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
       debugPrint('Error processing head capture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
+          SnackBar(
+            content: Text('${t['errorPrefix']} $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -97,17 +102,16 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
   }
 
   Future<void> _handleSelectedImage(String imagePath) async {
+    final t = ARCaptureLocalization.headCapture(widget.language);
     if (_primaryImagePath == null) {
       setState(() => _primaryImagePath = imagePath);
       if (!mounted) {
         return;
       }
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Primary head capture saved. Take a second confirmation image to improve Gemini accuracy.',
-          ),
-          duration: Duration(seconds: 3),
+        SnackBar(
+          content: Text(t['savedPrimary']!),
+          duration: const Duration(seconds: 3),
         ),
       );
       return;
@@ -175,18 +179,7 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    const t = {
-      'title': 'Head Screening Capture',
-      'instruction':
-          'Capture an oblique top-down frontal view with the forehead, temples, and nose visible.',
-      'instructionSecondary':
-          'Primary capture saved. Take a second confirmation image from a nearby supported angle.',
-      'processing': 'Running head screening...',
-      'processingDetail': 'Reviewing the head image, landmarks, and geometry.',
-      'stepPrimary': 'Step 1 of 2',
-      'stepSecondary': 'Step 2 of 2',
-      'resetPair': 'Start Over',
-    };
+    final t = ARCaptureLocalization.headCapture(widget.language);
 
     return Stack(
       children: [
@@ -229,7 +222,7 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.12),
+                    color: Colors.white.withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(
@@ -278,7 +271,7 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
                           height: 80,
                           decoration: BoxDecoration(
                             color: _isProcessing
-                                ? Colors.white.withOpacity(0.65)
+                                ? Colors.white.withValues(alpha: 0.65)
                                 : AppColors.white,
                             shape: BoxShape.circle,
                             border: Border.all(
@@ -287,7 +280,7 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: AppColors.primary.withOpacity(0.3),
+                                color: AppColors.primary.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 spreadRadius: 5,
                               ),
@@ -328,7 +321,7 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
         if (_isProcessing)
           Positioned.fill(
             child: Container(
-              color: Colors.black.withOpacity(0.58),
+              color: Colors.black.withValues(alpha: 0.58),
               padding: const EdgeInsets.symmetric(horizontal: 24),
               child: Center(
                 child: Container(
@@ -376,14 +369,14 @@ class _HeadCaptureScreenState extends State<HeadCaptureScreen> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.08),
+                          color: Colors.white.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(18),
                         ),
                         child: Column(
                           children: [
-                            const Text(
-                              'Health Note',
-                              style: TextStyle(
+                            Text(
+                              t['healthNote']!,
+                              style: const TextStyle(
                                 color: Colors.white60,
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,

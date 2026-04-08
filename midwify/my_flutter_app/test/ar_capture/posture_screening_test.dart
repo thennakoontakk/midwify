@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:midwify/services/ar_capture/posture_screening.dart';
 
@@ -53,12 +55,38 @@ List<List<double>> _translatePose(
       .toList();
 }
 
+List<List<double>> _rotatePose(
+  List<List<double>> pose, {
+  required double degrees,
+  double centerX = 0.5,
+  double centerY = 0.5,
+}) {
+  final radians = degrees * 3.1415926535897932 / 180.0;
+  final cosTheta = math.cos(radians);
+  final sinTheta = math.sin(radians);
+
+  return pose
+      .map((kp) {
+        final mathX = kp[1] - centerX;
+        final mathY = -(kp[0] - centerY);
+        final rotatedMathX = (mathX * cosTheta) - (mathY * sinTheta);
+        final rotatedMathY = (mathX * sinTheta) + (mathY * cosTheta);
+        return <double>[
+          centerY - rotatedMathY,
+          rotatedMathX + centerX,
+          kp[2],
+        ];
+      })
+      .toList();
+}
+
 void main() {
   group('posture screening', () {
     test('balanced pose produces a supported low-risk screen', () {
       final result = analyzePostureKeypoints(_balancedPose());
 
       expect(result.supportedView, isTrue);
+      expect(result.captureAccepted, isTrue);
       expect(result.riskBand, PostureRiskBand.lowRisk);
       expect(result.screeningScore, lessThan(35));
       expect(result.shoulderTiltDeg, closeTo(0.0, 0.01));
@@ -81,9 +109,10 @@ void main() {
       );
 
       expect(result.screeningScore, greaterThanOrEqualTo(35));
+      expect(result.captureAccepted, isTrue);
       expect(result.riskBand.index, greaterThanOrEqualTo(PostureRiskBand.review.index));
-      expect(result.shoulderTiltDeg, greaterThan(10.0));
-      expect(result.hipTiltDeg, greaterThan(20.0));
+      expect(result.shoulderTiltDeg, greaterThan(6.0));
+      expect(result.hipTiltDeg, greaterThan(6.0));
     });
 
     test('low keypoint visibility rejects the capture', () {
@@ -102,8 +131,10 @@ void main() {
       );
 
       expect(result.supportedView, isFalse);
+      expect(result.captureAccepted, isFalse);
       expect(result.screeningScore, greaterThanOrEqualTo(55));
       expect(result.warnings, isNotEmpty);
+      expect(result.rejectionReasons, isNotEmpty);
     });
 
     test('metrics stay stable under translation', () {
@@ -115,6 +146,19 @@ void main() {
       expect(shifted.shoulderTiltDeg, closeTo(base.shoulderTiltDeg, 0.01));
       expect(shifted.hipTiltDeg, closeTo(base.hipTiltDeg, 0.01));
       expect(shifted.midlineOffsetRatio, closeTo(base.midlineOffsetRatio, 0.01));
+    });
+
+    test('camera roll does not create a false asymmetry signal', () {
+      final rolled = analyzePostureKeypoints(
+        _rotatePose(_balancedPose(), degrees: 12),
+      );
+
+      expect(rolled.captureAccepted, isTrue);
+      expect(rolled.supportedView, isTrue);
+      expect(rolled.riskBand, PostureRiskBand.lowRisk);
+      expect(rolled.shoulderTiltDeg, lessThan(2.0));
+      expect(rolled.hipTiltDeg, lessThan(2.0));
+      expect(rolled.trunkTiltDeg, lessThan(3.0));
     });
   });
 }

@@ -46,6 +46,7 @@ dependencies:
   path_provider: 2.1.4
   image_picker: 1.1.2
   google_mlkit_face_mesh_detection: 0.4.1
+  intl: ^0.20.2
 
 dev_dependencies:
   flutter_test:
@@ -78,7 +79,7 @@ flutter:
   uses-material-design: true
 
   assets:
-    - .env
+    - app.env
     - assets/fetal_health_rf_model.json
     - assets/maternal_risk_rf_model.json
     - assets/models/face_landmarker.task

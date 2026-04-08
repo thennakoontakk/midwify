@@ -64,4 +64,19 @@ void main() {
       expect(low.riskBand, RiskBand.lowRisk);
     });
   });
+
+  group('GeminiCranioService', () {
+    test('maps timeout failures to a user-facing fallback message', () {
+      final message = GeminiCranioService.userVisibleFailureMessage(
+        Exception(
+          'Gemini cranial analysis failed: TimeoutException after 0:00:25.000000: Future not completed',
+        ),
+      );
+
+      expect(
+        message,
+        'AI-assisted photo review did not respond in time, so this result uses on-device geometry only.',
+      );
+    });
+  });
 }
