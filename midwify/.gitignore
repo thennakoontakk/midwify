@@ -54,3 +54,6 @@ venv/
 
 # Backend node_modules
 backend/node_modules/
+
+# Java heap dumps
+*.hprof
