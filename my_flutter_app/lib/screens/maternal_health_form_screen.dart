@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../core/app_colors.dart';
 import '../core/app_drawer.dart';
 import '../services/maternal_health_service.dart';
+import '../services/voice_input_service.dart';
 
 class MaternalHealthFormScreen extends StatefulWidget {
   const MaternalHealthFormScreen({super.key});
@@ -21,6 +22,8 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
   List<Map<String, dynamic>> _patients = [];
   bool _isLoadingPatients = true;
   bool _isAnalyzing = false;
+  bool _isListening = false;
+  final VoiceInputService _voiceService = VoiceInputService();
 
   // Form Controllers
   final _ageController = TextEditingController();
@@ -84,15 +87,61 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
     });
   }
 
-  void _voiceFillDummy() {
-    setState(() {
-      _ageController.text = '25';
-      _sysBpController.text = '120';
-      _diaBpController.text = '80';
-      _hrController.text = '75';
-      _tempController.text = '36.6';
-      _bsController.text = '90';
-    });
+  Future<void> _toggleVoiceInput() async {
+    if (_isListening) {
+      await _voiceService.stopListening();
+      setState(() => _isListening = false);
+      return;
+    }
+
+    final success = await _voiceService.init();
+    if (!success) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Microphone permission denied')),
+      );
+      return;
+    }
+
+    setState(() => _isListening = true);
+    await HapticFeedback.mediumImpact();
+
+    await _voiceService.startListening(
+      onResult: (text) {
+        _parseVoiceInput(text);
+      },
+      onDone: () {
+        if (mounted) {
+          setState(() => _isListening = false);
+        }
+      },
+    );
+  }
+
+  void _parseVoiceInput(String text) {
+    debugPrint('Recognized: $text');
+    final lowerText = text.toLowerCase();
+
+    // Simple regex-based parsing
+    final ageMatch = RegExp(r'age\s*(\d+)').firstMatch(lowerText);
+    if (ageMatch != null) _ageController.text = ageMatch.group(1)!;
+
+    final sysMatch = RegExp(r'(systolic|blood pressure high)\s*(\d+)').firstMatch(lowerText);
+    if (sysMatch != null) _sysBpController.text = sysMatch.group(2)!;
+
+    final diaMatch = RegExp(r'(diastolic|blood pressure low)\s*(\d+)').firstMatch(lowerText);
+    if (diaMatch != null) _diaBpController.text = diaMatch.group(2)!;
+
+    final hrMatch = RegExp(r'(heart rate|pulse)\s*(\d+)').firstMatch(lowerText);
+    if (hrMatch != null) _hrController.text = hrMatch.group(2)!;
+
+    final tempMatch = RegExp(r'(temperature|temp|body temp)\s*(\d+\.?\d*)').firstMatch(lowerText);
+    if (tempMatch != null) _tempController.text = tempMatch.group(2)!;
+
+    final bsMatch = RegExp(r'(sugar|blood sugar|bs)\s*(\d+\.?\d*)').firstMatch(lowerText);
+    if (bsMatch != null) _bsController.text = bsMatch.group(2)!;
+
+    HapticFeedback.lightImpact();
   }
 
   Future<void> _analyzeRisk() async {
@@ -190,11 +239,11 @@ class _MaternalHealthFormScreenState extends State<MaternalHealthFormScreen> {
                   ),
                 ),
                 ElevatedButton.icon(
-                  onPressed: _voiceFillDummy,
-                  icon: const Icon(Icons.mic, size: 18),
-                  label: const Text('Voice Fill'),
+                  onPressed: _toggleVoiceInput,
+                  icon: Icon(_isListening ? Icons.stop : Icons.mic, size: 18),
+                  label: Text(_isListening ? 'Listening...' : 'Voice Fill'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE91E7B),
+                    backgroundColor: _isListening ? Colors.red : const Color(0xFFE91E7B),
                     foregroundColor: Colors.white,
                     elevation: 0,
                     shape: RoundedRectangleBorder(

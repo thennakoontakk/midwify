@@ -5,12 +5,15 @@ Loads a trained Random Forest model and exposes a /predict endpoint.
 
 import os
 import pickle
+import tempfile
 import numpy as np
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+from cv_extractor import validate_ctg_image, extract_baseline_hr, get_default_parameters
 
 app = Flask(__name__)
-CORS(app)
+# Allow all origins, methods and headers to ensure mobile connectivity works smoothly
+CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
 
 # ── Feature names (must match training order) ──────────────────────────
 FEATURE_NAMES = [
@@ -131,7 +134,7 @@ MATERNAL_PREDICTION_LABELS = {
 # Some use ints. We'll handle both.
 
 # Try loading maternal model, but allow server to run if not possible
-MATERNAL_MODEL_PATH = os.path.join(os.path.dirname(__file__), '..', 'maternal_risk_model.pkl')
+MATERNAL_MODEL_PATH = os.path.join(os.path.dirname(__file__), 'maternal_risk_model.pkl')
 try:
     with open(MATERNAL_MODEL_PATH, 'rb') as f:
         maternal_model = pickle.load(f)
@@ -139,7 +142,7 @@ try:
 except Exception as e:
     maternal_model = None
     maternal_feature_importances = {}
-    print(f'⚠️ Warning: Could not load maternal model: {e}')
+    print(f'[WARNING] Could not load maternal model: {e}')
 
 
 def get_maternal_xai_reasons(features_dict, prediction_label, top_n=3):
@@ -244,6 +247,61 @@ def predict_maternal():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/upload-ctg', methods=['POST'])
+def upload_ctg():
+    """
+    Accept a CTG strip image, validate it using OCR, extract the baseline
+    fetal heart rate using OpenCV, and return all 21 parameters with defaults.
+    """
+    try:
+        if 'image' not in request.files:
+            return jsonify({'error': 'No image file provided'}), 400
+
+        file = request.files['image']
+        if file.filename == '':
+            return jsonify({'error': 'No selected file'}), 400
+
+        # Save to a temporary file
+        suffix = os.path.splitext(file.filename)[1] or '.png'
+        with tempfile.NamedTemporaryFile(delete=False, suffix=suffix) as tmp:
+            file.save(tmp.name)
+            tmp_path = tmp.name
+
+        try:
+            # Step 1: Validate the image is a CTG strip
+            is_valid, error_msg = validate_ctg_image(tmp_path)
+            if not is_valid:
+                return jsonify({
+                    'valid': False,
+                    'error': error_msg,
+                }), 400
+
+            # Step 2: Extract baseline heart rate
+            extraction = extract_baseline_hr(tmp_path)
+            baseline_hr = extraction['baseline_hr']
+
+            # Step 3: Build all 21 parameters with defaults
+            parameters = get_default_parameters(baseline_hr)
+
+            return jsonify({
+                'valid': True,
+                'baseline_hr': baseline_hr,
+                'extraction_method': extraction.get('extraction_method', 'unknown'),
+                'signal_points': extraction.get('signal_points_detected', 0),
+                'parameters': parameters,
+            })
+
+        finally:
+            # Clean up temp file
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+    except Exception as e:
+        return jsonify({'error': f'Upload processing error: {str(e)}'}), 500
+
+
 @app.route('/health', methods=['GET'])
 def health():
     return jsonify({
@@ -253,7 +311,7 @@ def health():
     })
 
 if __name__ == '__main__':
-    print('🏥 Midwify Predictive APIs')
-    print(f'📦 Fetal Model loaded: {model is not None}')
-    print(f'📦 Maternal Model loaded: {maternal_model is not None}')
+    print('[Midwify] Predictive APIs')
+    print(f'[+] Fetal Model loaded: {model is not None}')
+    print(f'[+] Maternal Model loaded: {maternal_model is not None}')
     app.run(host='0.0.0.0', port=5000, debug=True)

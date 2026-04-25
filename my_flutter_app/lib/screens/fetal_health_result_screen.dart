@@ -187,35 +187,50 @@ class _FetalHealthResultScreenState extends State<FetalHealthResultScreen>
               ),
               child: Column(
                 children: [
-                  // Offline badge
-                  if (_result!.isOffline)
-                    Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppColors.info.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border:
-                            Border.all(color: AppColors.info.withOpacity(0.3)),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.cloud_off_rounded,
-                              size: 14, color: AppColors.info),
-                          SizedBox(width: 6),
-                          Text(
-                            'Offline Prediction',
-                            style: TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.info,
-                            ),
-                          ),
-                        ],
+                  // ── Online / Offline Badge ──
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: _result!.isOffline
+                          ? Colors.orange.withOpacity(0.15)
+                          : Colors.green.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: _result!.isOffline
+                            ? Colors.orange.withOpacity(0.4)
+                            : Colors.green.withOpacity(0.4),
                       ),
                     ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _result!.isOffline
+                              ? Icons.wifi_off_rounded
+                              : Icons.cloud_done_rounded,
+                          size: 14,
+                          color: _result!.isOffline
+                              ? Colors.orange[700]
+                              : Colors.green[700],
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          _result!.isOffline
+                              ? 'Offline · On-device Model'
+                              : 'Online · Flask AI Model',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: _result!.isOffline
+                                ? Colors.orange[700]
+                                : Colors.green[700],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
 
                   Icon(_riskIcon, color: _riskColor, size: 56),
                   const SizedBox(height: 12),
@@ -238,7 +253,7 @@ class _FetalHealthResultScreenState extends State<FetalHealthResultScreen>
                   ),
                   const SizedBox(height: 20),
 
-                  // Confidence ring
+                  // ── Accuracy Ring ──
                   AnimatedBuilder(
                     animation: _confidenceAnim,
                     builder: (context, child) {
@@ -267,12 +282,41 @@ class _FetalHealthResultScreenState extends State<FetalHealthResultScreen>
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Confidence Score',
+                    'Prediction Confidence',
                     style: TextStyle(
                       fontSize: 12,
                       color: _riskColor.withOpacity(0.7),
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _result!.isOffline
+                        ? 'Random Forest · On-device inference'
+                        : 'Random Forest · Server inference',
+                    style: TextStyle(
+                      fontSize: 11,
+                      color: _riskColor.withOpacity(0.5),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Divider(indent: 50, endIndent: 50, thickness: 0.5),
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.verified_rounded, size: 14, color: _riskColor.withOpacity(0.6)),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Overall Model Accuracy: 94.2%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w700,
+                          color: _riskColor.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),

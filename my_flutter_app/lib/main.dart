@@ -12,6 +12,8 @@ import 'screens/fetal_health_patient_select_screen.dart';
 import 'screens/fetal_health_form_screen.dart';
 import 'screens/fetal_health_result_screen.dart';
 import 'screens/fetal_health_history_screen.dart';
+import 'screens/ctg_upload_screen.dart';
+import 'screens/ctg_verification_screen.dart';
 // import 'screens/fetal_health_dashboard_screen.dart';
 import 'screens/maternal_health_form_screen.dart';
 import 'screens/maternal_health_result_screen.dart';
@@ -63,6 +65,9 @@ class MidwifyApp extends StatelessWidget {
             const FetalHealthResultScreen(),
         '/fetal-health-history': (context) =>
             const FetalHealthHistoryScreen(),
+        // CTG Image Upload routes
+        '/ctg-upload': (context) => const CtgUploadScreen(),
+        '/ctg-verify': (context) => const CtgVerificationScreen(),
         // '/fetal-health-dashboard': (context) =>
         //     const FetalHealthDashboardScreen(),
         // Maternal Risk Analysis routes

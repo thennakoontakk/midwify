@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:async';
 import 'package:http/http.dart' as http;
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'offline_model_service.dart';
 
 /// Result of a fetal health prediction.
@@ -37,10 +38,8 @@ class FetalHealthResult {
 /// High-level fetal health prediction service.
 /// Tries Flask API first; falls back to offline model.
 class FetalHealthService {
-  // Change this to your Flask server address.
-  // For Chrome/web: use http://localhost:5000
-  // For Android emulator: use http://10.0.2.2:5000
-  // For physical device: use your PC's local IP e.g. http://192.168.x.x:5000
+  // Flask backend running on the local PC via USB/WiFi
+  // Update this if your PC's IP address changes
   static const String _baseUrl = 'http://192.168.8.176:5000';
 
   /// Feature names in the correct order.
@@ -151,15 +150,32 @@ class FetalHealthService {
     ],
   };
 
-  /// Run prediction: tries server first, then offline.
-  static Future<FetalHealthResult> predict(List<double> features) async {
-    // Try online prediction first
+  /// Check if device has internet connectivity.
+  static Future<bool> _hasInternet() async {
     try {
-      final result = await _predictOnline(features)
-          .timeout(const Duration(seconds: 5));
-      return result;
+      final result = await Connectivity().checkConnectivity();
+      return result.any((r) =>
+          r == ConnectivityResult.wifi ||
+          r == ConnectivityResult.mobile ||
+          r == ConnectivityResult.ethernet);
     } catch (_) {
-      // Fall back to offline prediction
+      return false;
+    }
+  }
+
+  /// Run prediction: checks internet, tries server first, then offline.
+  static Future<FetalHealthResult> predict(List<double> features) async {
+    final connected = await _hasInternet();
+    if (connected) {
+      try {
+        final result = await _predictOnline(features)
+            .timeout(const Duration(seconds: 10));
+        return result;
+      } catch (_) {
+        // Server unreachable even though internet exists — fall back to offline
+        return _predictOffline(features);
+      }
+    } else {
       return _predictOffline(features);
     }
   }
