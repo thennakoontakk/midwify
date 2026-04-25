@@ -95,7 +95,7 @@ class MaternalHealthAssessment {
 
 /// High-level maternal health prediction service.
 class MaternalHealthService {
-  static const String _baseUrl = 'http://192.168.8.176:5000';
+  static const String _baseUrl = 'http://172.28.19.184:5000';
   static final _collection = FirebaseFirestore.instance.collection('maternal_assessments');
 
   static String get _midwifeId => FirebaseAuth.instance.currentUser?.uid ?? '';
@@ -103,7 +103,7 @@ class MaternalHealthService {
   /// Predict maternal risk: tries server first, then offline.
   static Future<MaternalHealthResult> predict(List<double> features) async {
     try {
-      final result = await _predictOnline(features).timeout(const Duration(seconds: 4));
+      final result = await _predictOnline(features).timeout(const Duration(seconds: 10));
       return result;
     } catch (_) {
       return _predictOffline(features);

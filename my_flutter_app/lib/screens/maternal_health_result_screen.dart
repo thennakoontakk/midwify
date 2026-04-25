@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../core/app_colors.dart';
@@ -14,6 +15,33 @@ class MaternalHealthResultScreen extends StatefulWidget {
 class _MaternalHealthResultScreenState extends State<MaternalHealthResultScreen> {
   bool _isSaving = false;
   bool _isSaved = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _triggerResultHaptics();
+  }
+
+  Future<void> _triggerResultHaptics() async {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+      if (args == null) return;
+
+      final MaternalHealthResult result = args['result'];
+      if (result.predictionScore >= 6) {
+        // High Risk: Heavy vibrations
+        await HapticFeedback.heavyImpact();
+        await Future.delayed(const Duration(milliseconds: 200));
+        await HapticFeedback.heavyImpact();
+      } else if (result.predictionScore >= 3) {
+        // Mid Risk: Medium impact
+        await HapticFeedback.mediumImpact();
+      } else {
+        // Low Risk: Light pulse
+        await HapticFeedback.lightImpact();
+      }
+    });
+  }
 
   Future<void> _saveReport(Map<String, dynamic> args) async {
     setState(() => _isSaving = true);
@@ -248,7 +276,7 @@ class _MaternalHealthResultScreenState extends State<MaternalHealthResultScreen>
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              result.isOffline ? 'AI Model: Local ML Heuristic' : 'AI Model: Cloud ML Pipeline',
+                              'AI Model: Midwify Predictive Core',
                               style: const TextStyle(
                                 color: AppColors.grey500,
                                 fontSize: 12,

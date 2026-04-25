@@ -178,11 +178,6 @@ class _FetalHealthHistoryScreenState extends State<FetalHealthHistoryScreen> {
                                 color: color,
                               ),
                             ),
-                            if (a.wasOffline) ...[
-                              const SizedBox(width: 6),
-                              const Icon(Icons.cloud_off_rounded,
-                                  size: 14, color: AppColors.info),
-                            ],
                           ],
                         ),
                         Text(
