@@ -235,7 +235,7 @@ class CranialAnalysisService {
         'headPresence': headPresence.toJson(),
         'geometry': cranialResult.toJson(),
         'inputContext': {
-          'ageWeeks': 0,
+          'ageWeeks': -1,
           'familyHistory': false,
           'visibleSutureRidge': false,
           'feedingDifficulties': false,
@@ -252,7 +252,7 @@ class CranialAnalysisService {
           secondaryImagePath: preparedSecondaryImage?.path,
           geometry: cranialResult,
           metrics: derivedMetrics,
-          ageWeeks: 0,
+          ageWeeks: -1,
           familyHistory: false,
           visibleSutureRidge: false,
           feedingDifficulties: false,
@@ -465,11 +465,13 @@ class CranialAnalysisService {
     required String aiFallbackMessage,
     required Map<String, dynamic> debugDetails,
   }) {
-    final riskBand = switch (cranialResult.riskBand) {
-      CranialRiskBand.lowRisk => RiskBand.lowRisk,
-      CranialRiskBand.review => RiskBand.review,
-      CranialRiskBand.refer => RiskBand.refer,
-    };
+    final riskBand = !cranialResult.supportedView
+        ? RiskBand.unavailable
+        : switch (cranialResult.riskBand) {
+            CranialRiskBand.lowRisk => RiskBand.lowRisk,
+            CranialRiskBand.review => RiskBand.review,
+            CranialRiskBand.refer => RiskBand.refer,
+          };
 
     final summary = !cranialResult.supportedView
         ? 'Unsupported head capture view. Retake before relying on the screen.'

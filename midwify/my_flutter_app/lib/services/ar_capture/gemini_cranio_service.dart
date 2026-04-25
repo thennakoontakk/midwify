@@ -194,7 +194,9 @@ VISUAL ASSESSMENT GUIDELINES - what to look for in the photo:
   underlying head shape.
 
 MEASUREMENT INPUT FIELDS YOU WILL RECEIVE:
-- ageWeeks: baby age in weeks (0-104)
+- ageWeeks: baby age in weeks (0-104), or -1 when the app did not capture age.
+  When ageWeeks is -1 (unknown), do NOT apply the conservative under-8-week rule.
+  Treat the age as unknown and base your assessment on geometry and visual evidence only.
 - cephalicIndex: skull width-to-length ratio. Normal 75-85. Below 70 suggests
   scaphocephaly. Above 90 suggests brachycephaly.
 - asymmetryIndex: left-right cranial asymmetry percentage. Above 3.5% notable.
@@ -506,10 +508,11 @@ No preamble. Exact schema:
       },
       'dataCompleteness': {
         'parentRiskFactorsCapturedInAppFlow': false,
+        'ageWeeksKnown': ageWeeks >= 0,
         'notes': [
-          'This Flutter flow does not currently collect parent risk factors or age from the capture UI.',
-          'Default values may be present for ageWeeks and parentRiskFactors when the app has not captured them yet.',
-          'Null metric fields indicate values not available from the current geometry DTO without changing the preserved measurement engine.',
+          'ageWeeks is -1 when unknown (not captured yet); do not apply the conservative under-8-week rule in that case.',
+          'parentRiskFactors are all false because the app does not yet collect them from the user.',
+          'Null metric fields indicate values not computable from the current landmark set.',
         ],
       },
     };

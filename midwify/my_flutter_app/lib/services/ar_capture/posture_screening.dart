@@ -270,7 +270,6 @@ PostureAssessment analyzePostureKeypoints(List<List<double>> keypoints) {
   screeningScore += _scoreFromRatio(midlineOffsetRatio, soft: 0.08, hard: 0.16, max: 15);
 
   if (!supportedView) {
-    screeningScore = math.max(screeningScore, 55);
     warnings.add(
       'Unsupported posture view. Retake with a centered frontal or top-down body view.',
     );

@@ -249,7 +249,6 @@ CranialResult analyzeCranialMetrics(List<Landmark3D> landmarks) {
   }
 
   if (!supportedView) {
-    screeningScore = math.max(screeningScore, 55);
     reasons.add('Capture quality is insufficient for a reliable low-risk screen.');
   }
 
