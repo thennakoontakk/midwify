@@ -54,3 +54,18 @@ venv/
 
 # Backend node_modules
 backend/node_modules/
+
+# Duplicate nested folder (old nested repo)
+midwify/
+
+# JVM crash/error logs
+*.hprof
+hs_err_pid*.log
+replay_pid*.log
+
+# Misc junk files
+diffs.txt
+log.txt
+status.txt
+cranial_metrics.ts
+AR_CAPTURE_HEAD_MODEL.md
