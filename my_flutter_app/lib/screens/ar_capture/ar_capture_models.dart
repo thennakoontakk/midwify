@@ -1,7 +1,45 @@
-enum ScreenState { languageSelection, modeSelection, capture, diagnosis, geometricTool }
+enum ScreenState {
+  languageSelection,
+  modeSelection,
+  guide,
+  capture,
+  diagnosis,
+  geometricTool
+}
+
 enum AppMode { head, posture, none }
+
 enum AppLanguage { en, si }
-enum RiskBand { lowRisk, review, refer, unavailable }
+
+enum RiskBand { unavailable, lowRisk, review, refer }
+
+extension RiskBandPresentation on RiskBand {
+  String get label {
+    switch (this) {
+      case RiskBand.lowRisk:
+        return 'Low Signal';
+      case RiskBand.review:
+        return 'Review Signal';
+      case RiskBand.refer:
+        return 'High Priority';
+      case RiskBand.unavailable:
+        return 'Unavailable';
+    }
+  }
+
+  String get impactLevelLabel {
+    switch (this) {
+      case RiskBand.lowRisk:
+        return 'Low';
+      case RiskBand.review:
+        return 'Medium';
+      case RiskBand.refer:
+        return 'High';
+      case RiskBand.unavailable:
+        return 'Unavailable';
+    }
+  }
+}
 
 class HeadScreeningMetrics {
   final double cranialIndex;
@@ -10,22 +48,14 @@ class HeadScreeningMetrics {
   final double cephalicProportionScore;
   final double landmarkQuality;
   final double topDownAngleDelta;
-  final double? templeTiltDeg;
-  final double? orbitalSymmetry;
-  final double? anteriorPosteriorRatio;
-  final double? templeWidth;
-  final double? foreheadWidth;
-  final double? classifierAbnormalProbability;
-  final double? classifierNormalProbability;
-  final String? classifierDecision;
-  final String? aiRiskLevel;
-  final int? aiRiskScore;
-  final String? headShapeLabel;
-  final List<String>? keyFindings;
-  final String? recommendation;
-  final String? visualObservations;
-  final String? aiConfidence;
-  final String? aiUrgency;
+  final double classifierAbnormalProbability;
+  final double classifierNormalProbability;
+  final String classifierDecision;
+  final String aiRiskLevel;
+  final int aiRiskScore;
+  final String headShapeLabel;
+  final String recommendation;
+  final String visualObservations;
 
   const HeadScreeningMetrics({
     required this.cranialIndex,
@@ -34,48 +64,34 @@ class HeadScreeningMetrics {
     required this.cephalicProportionScore,
     required this.landmarkQuality,
     required this.topDownAngleDelta,
-    this.templeTiltDeg,
-    this.orbitalSymmetry,
-    this.anteriorPosteriorRatio,
-    this.templeWidth,
-    this.foreheadWidth,
-    this.classifierAbnormalProbability,
-    this.classifierNormalProbability,
-    this.classifierDecision,
-    this.aiRiskLevel,
-    this.aiRiskScore,
-    this.headShapeLabel,
-    this.keyFindings,
-    this.recommendation,
-    this.visualObservations,
-    this.aiConfidence,
-    this.aiUrgency,
+    this.classifierAbnormalProbability = 0.0,
+    this.classifierNormalProbability = 0.0,
+    this.classifierDecision = 'Unavailable',
+    this.aiRiskLevel = 'unknown',
+    this.aiRiskScore = 0,
+    this.headShapeLabel = 'unclassified',
+    this.recommendation = '',
+    this.visualObservations = '',
   });
 
-  Map<String, dynamic> toJson() => {
-        'cranialIndex': cranialIndex,
-        'cranialVaultAsymmetryIndex': cranialVaultAsymmetryIndex,
-        'facialSymmetryOffsetPct': facialSymmetryOffsetPct,
-        'cephalicProportionScore': cephalicProportionScore,
-        'landmarkQuality': landmarkQuality,
-        'topDownAngleDelta': topDownAngleDelta,
-        'templeTiltDeg': templeTiltDeg,
-        'orbitalSymmetry': orbitalSymmetry,
-        'anteriorPosteriorRatio': anteriorPosteriorRatio,
-        'templeWidth': templeWidth,
-        'foreheadWidth': foreheadWidth,
-        'classifierAbnormalProbability': classifierAbnormalProbability,
-        'classifierNormalProbability': classifierNormalProbability,
-        'classifierDecision': classifierDecision,
-        'aiRiskLevel': aiRiskLevel,
-        'aiRiskScore': aiRiskScore,
-        'headShapeLabel': headShapeLabel,
-        'keyFindings': keyFindings,
-        'recommendation': recommendation,
-        'visualObservations': visualObservations,
-        'aiConfidence': aiConfidence,
-        'aiUrgency': aiUrgency,
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'cranialIndex': cranialIndex,
+      'cranialVaultAsymmetryIndex': cranialVaultAsymmetryIndex,
+      'facialSymmetryOffsetPct': facialSymmetryOffsetPct,
+      'cephalicProportionScore': cephalicProportionScore,
+      'landmarkQuality': landmarkQuality,
+      'topDownAngleDelta': topDownAngleDelta,
+      'classifierAbnormalProbability': classifierAbnormalProbability,
+      'classifierNormalProbability': classifierNormalProbability,
+      'classifierDecision': classifierDecision,
+      'aiRiskLevel': aiRiskLevel,
+      'aiRiskScore': aiRiskScore,
+      'headShapeLabel': headShapeLabel,
+      'recommendation': recommendation,
+      'visualObservations': visualObservations,
+    };
+  }
 }
 
 class PostureScreeningMetrics {
@@ -97,15 +113,17 @@ class PostureScreeningMetrics {
     required this.cameraRollDeg,
   });
 
-  Map<String, dynamic> toJson() => {
-        'shoulderTiltDeg': shoulderTiltDeg,
-        'hipTiltDeg': hipTiltDeg,
-        'trunkTiltDeg': trunkTiltDeg,
-        'headTiltDeg': headTiltDeg,
-        'midlineOffsetRatio': midlineOffsetRatio,
-        'visibilityQuality': visibilityQuality,
-        'cameraRollDeg': cameraRollDeg,
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'shoulderTiltDeg': shoulderTiltDeg,
+      'hipTiltDeg': hipTiltDeg,
+      'trunkTiltDeg': trunkTiltDeg,
+      'headTiltDeg': headTiltDeg,
+      'midlineOffsetRatio': midlineOffsetRatio,
+      'visibilityQuality': visibilityQuality,
+      'cameraRollDeg': cameraRollDeg,
+    };
+  }
 }
 
 class ARCaptureResult {
@@ -116,8 +134,8 @@ class ARCaptureResult {
   final RiskBand riskBand;
   final String summary;
   final List<String> warnings;
-  final String? landmarkSource;
-  final Map<String, dynamic>? debugDetails;
+  final bool researchUseOnly;
+  final String landmarkSource;
   final HeadScreeningMetrics? headMetrics;
   final PostureScreeningMetrics? postureMetrics;
 
@@ -129,17 +147,16 @@ class ARCaptureResult {
     required this.riskBand,
     required this.summary,
     required this.warnings,
-    this.landmarkSource,
-    this.debugDetails,
+    this.researchUseOnly = true,
+    this.landmarkSource = '',
     this.headMetrics,
     this.postureMetrics,
   });
 
   factory ARCaptureResult.invalid({
-    required String summary,
+    String summary = 'No usable image was captured.',
     List<String> warnings = const [],
-    String? landmarkSource,
-    Map<String, dynamic>? debugDetails,
+    String landmarkSource = '',
   }) {
     return ARCaptureResult(
       isValidImage: false,
@@ -150,21 +167,22 @@ class ARCaptureResult {
       summary: summary,
       warnings: warnings,
       landmarkSource: landmarkSource,
-      debugDetails: debugDetails,
     );
   }
 
-  Map<String, dynamic> toJson() => {
-        'isValidImage': isValidImage,
-        'supportedView': supportedView,
-        'qualityScore': qualityScore,
-        'screeningScore': screeningScore,
-        'riskBand': riskBand.name,
-        'summary': summary,
-        'warnings': warnings,
-        'landmarkSource': landmarkSource,
-        'debugDetails': debugDetails,
-        'headMetrics': headMetrics?.toJson(),
-        'postureMetrics': postureMetrics?.toJson(),
-      };
+  Map<String, dynamic> toJson() {
+    return {
+      'isValidImage': isValidImage,
+      'supportedView': supportedView,
+      'qualityScore': qualityScore,
+      'screeningScore': screeningScore,
+      'riskBand': riskBand.name,
+      'summary': summary,
+      'warnings': warnings,
+      'researchUseOnly': researchUseOnly,
+      'landmarkSource': landmarkSource,
+      'headMetrics': headMetrics?.toJson(),
+      'postureMetrics': postureMetrics?.toJson(),
+    };
+  }
 }

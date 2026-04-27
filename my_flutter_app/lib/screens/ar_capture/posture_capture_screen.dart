@@ -1,14 +1,15 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+
 import '../../core/app_colors.dart';
-import 'ar_capture_models.dart'; // To access AppMode, AppLanguage
-import '../../widgets/ar_capture/camera_view.dart'; // The existing camera view
-import '../../services/ar_capture/ml_service.dart'; // TFLite ML Service
+import '../../services/ar_capture/ml_service.dart';
+import '../../widgets/ar_capture/camera_view.dart';
+import 'ar_capture_models.dart';
 
 class PostureCaptureScreen extends StatefulWidget {
   final AppLanguage language;
-  final ValueChanged<int> onCapture;
+  final ValueChanged<ARCaptureResult> onCapture;
 
   const PostureCaptureScreen({
     super.key,
@@ -22,16 +23,11 @@ class PostureCaptureScreen extends StatefulWidget {
 
 class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
   final GlobalKey<CameraViewState> _cameraKey = GlobalKey<CameraViewState>();
-  bool _isProcessing = false;
   final ImagePicker _picker = ImagePicker();
+  bool _isProcessing = false;
 
   Future<void> _processImage(String imagePath) async {
-    debugPrint('=== POSTURE CAPTURE: Processing image ===');
-    debugPrint('Image path: "$imagePath"');
-    
-    // CRITICAL: Validate image path before processing
     if (imagePath.isEmpty || imagePath == 'null' || imagePath == 'undefined') {
-      debugPrint('ERROR: Empty or invalid image path received');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -43,44 +39,51 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
       }
       return;
     }
-    
+
     setState(() => _isProcessing = true);
-    
+
     try {
-      // Pass image to MLService
-      int confidence = await MLService().runInference(imagePath, AppMode.posture);
-      debugPrint('MLService returned confidence: $confidence');
-      
-      // Continue with normal flow
-      debugPrint('=== POSTURE CAPTURE: Success - proceeding to diagnosis ===');
-      widget.onCapture(confidence);
-      
+      final result = await MLService().runInference(imagePath, AppMode.posture);
+
+      if (!result.isValidImage) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                result.summary.isNotEmpty
+                    ? result.summary
+                    : 'No usable posture image was detected. Retake with the infant body fully visible.',
+              ),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 4),
+            ),
+          );
+        }
+        return;
+      }
+
+      widget.onCapture(result);
     } catch (e) {
-      debugPrint('Error processing image: $e');
+      debugPrint('Error processing posture capture: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.red,
-          ),
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) {
-        setState(() => _isProcessing = false);
-      }
+      if (mounted) setState(() => _isProcessing = false);
     }
   }
 
-  void _handleCameraCapture() async {
+  Future<void> _handleCameraCapture() async {
     final xFile = await _cameraKey.currentState?.takePicture();
     if (xFile != null) {
       await _processImage(xFile.path);
     }
   }
 
-  void _handleGalleryPicker() async {
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+  Future<void> _handleGalleryPicker() async {
+    final image = await _picker.pickImage(source: ImageSource.gallery);
     if (image != null) {
       await _processImage(image.path);
     }
@@ -88,22 +91,15 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final t = {
-      AppLanguage.en: {
-        'title': "Posture Analysis Capture",
-        'instruction': "Align the vertical guide with the baby's posture and keep steady.",
-        'processing': "Analyzing AI Model...",
-      },
-      AppLanguage.si: {
-        'title': "ඉරියව් විශ්ලේෂණ ඡායාරූපය",
-        'instruction': "සිරස් මාර්ගෝපදේශය ළදරුවාගේ ඉරියව්ව සමඟ පෙළගස්වා ස්ථාවරව තබා ගන්න.",
-        'processing': "AI ආකෘතිය විශ්ලේෂණය කරමින්...",
-      }
-    }[widget.language]!;
+    const t = {
+      'title': 'Posture Screening Capture',
+      'instruction':
+          'Capture a centered frontal or top-down body view with the shoulders and hips visible.',
+      'processing': 'Running posture screening...',
+    };
 
     return Stack(
       children: [
-        // Camera View Background
         Positioned.fill(
           child: CameraView(
             key: _cameraKey,
@@ -111,8 +107,6 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
             onImageCaptured: kIsWeb ? _processImage : null,
           ),
         ),
-        
-        // App Bar Overlay
         Positioned(
           top: 0,
           left: 0,
@@ -124,7 +118,11 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
               children: [
                 Text(
                   t['title']!,
-                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -136,8 +134,6 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
             ),
           ),
         ),
-
-        // Shutter Button Box
         Positioned(
           bottom: 40,
           left: 0,
@@ -145,7 +141,10 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
           child: Center(
             child: _isProcessing
                 ? Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.black87,
                       borderRadius: BorderRadius.circular(30),
@@ -158,26 +157,28 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
                           height: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+                            valueColor: AlwaysStoppedAnimation<Color>(
+                              AppColors.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Text(
                           t['processing']!,
-                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
                   )
                 : kIsWeb
-                    ? const SizedBox.shrink() // Hide controls on web, camera has its own
+                    ? const SizedBox.shrink()
                     : Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          // Invisible spacer to keep shutter centered
-                          const SizedBox(width: 60), 
-                          
-                          // Shutter button
+                          const SizedBox(width: 60),
                           GestureDetector(
                             onTap: _handleCameraCapture,
                             child: Container(
@@ -186,7 +187,10 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
                               decoration: BoxDecoration(
                                 color: AppColors.white,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: AppColors.primary, width: 6),
+                                border: Border.all(
+                                  color: AppColors.primary,
+                                  width: 6,
+                                ),
                                 boxShadow: [
                                   BoxShadow(
                                     color: AppColors.primary.withOpacity(0.3),
@@ -195,13 +199,14 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
                                   ),
                                 ],
                               ),
-                              child: const Icon(Icons.camera_alt, color: AppColors.primary, size: 36),
+                              child: const Icon(
+                                Icons.camera_alt,
+                                color: AppColors.primary,
+                                size: 36,
+                              ),
                             ),
                           ),
-                          
                           const SizedBox(width: 20),
-                          
-                          // Gallery button
                           GestureDetector(
                             onTap: _handleGalleryPicker,
                             child: Container(
@@ -210,9 +215,16 @@ class _PostureCaptureScreenState extends State<PostureCaptureScreen> {
                               decoration: BoxDecoration(
                                 color: Colors.black54,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white54, width: 2),
+                                border: Border.all(
+                                  color: Colors.white54,
+                                  width: 2,
+                                ),
                               ),
-                              child: const Icon(Icons.photo_library, color: Colors.white, size: 24),
+                              child: const Icon(
+                                Icons.photo_library,
+                                color: Colors.white,
+                                size: 24,
+                              ),
                             ),
                           ),
                         ],

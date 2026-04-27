@@ -1,3 +1,10 @@
+ext.flutter = [
+    compileSdkVersion: 36,
+    minSdkVersion: 24,
+    targetSdkVersion: 36,
+    ndkVersion: "25.1.8937393"
+]
+
 allprojects {
     repositories {
         google()

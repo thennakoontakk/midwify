@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 /// Service to upload CTG strip images to the Flask backend for extraction.
 class CtgUploadService {
   // Must match the Flask backend URL used in FetalHealthService
-  static const String _baseUrl = 'http://192.168.8.176:5000';
+  static const String _baseUrl = 'http://localhost:5000';
 
   /// Upload a CTG strip image and get extracted parameters.
   ///

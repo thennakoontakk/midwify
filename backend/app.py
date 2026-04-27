@@ -9,7 +9,7 @@ import tempfile
 import numpy as np
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from cv_extractor import validate_ctg_image, extract_baseline_hr, get_default_parameters
+from cv_extractor import validate_ctg_image, extract_ctg_features, get_default_parameters
 
 app = Flask(__name__)
 # Allow all origins, methods and headers to ensure mobile connectivity works smoothly
@@ -276,18 +276,18 @@ def upload_ctg():
                     'error': error_msg,
                 }), 400
 
-            # Step 2: Extract baseline heart rate
-            extraction = extract_baseline_hr(tmp_path)
-            baseline_hr = extraction['baseline_hr']
+            # Step 2: Extract all possible features from CTG image
+            extraction = extract_ctg_features(tmp_path)
 
-            # Step 3: Build all 21 parameters with defaults
-            parameters = get_default_parameters(baseline_hr)
+            # Step 3: Build all 21 parameters with extracted/calculated/defaults
+            parameters = get_default_parameters(extraction)
 
             return jsonify({
                 'valid': True,
-                'baseline_hr': baseline_hr,
+                'baseline_hr': extraction['baseline_hr'],
                 'extraction_method': extraction.get('extraction_method', 'unknown'),
                 'signal_points': extraction.get('signal_points_detected', 0),
+                'features_extracted': extraction.get('features_extracted', 0),
                 'parameters': parameters,
             })
 

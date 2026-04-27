@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'language_selection_screen.dart';
 import 'mode_selection_screen.dart';
+import 'how_to_scan_screen.dart';
 import 'head_capture_screen.dart';
 import 'posture_capture_screen.dart';
 import 'diagnosis_screen.dart';
@@ -22,7 +23,7 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
   ScreenState _currentScreen = ScreenState.languageSelection;
   AppMode _mode = AppMode.none;
   AppLanguage _language = AppLanguage.en;
-  int? _confidence;
+  ARCaptureResult? _captureResult;
 
   @override
   void initState() {
@@ -43,13 +44,19 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
   void _setModeAndNavigate(AppMode mode) {
     setState(() {
       _mode = mode;
+      _currentScreen = ScreenState.guide;
+    });
+  }
+
+  void _proceedToCapture() {
+    setState(() {
       _currentScreen = ScreenState.capture;
     });
   }
 
-  void _onCapture(int confidence) {
+  void _onCapture(ARCaptureResult result) {
     setState(() {
-      _confidence = confidence;
+      _captureResult = result;
       _currentScreen = ScreenState.diagnosis;
     });
   }
@@ -60,8 +67,11 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         case ScreenState.modeSelection:
           _currentScreen = ScreenState.languageSelection;
           break;
-        case ScreenState.capture:
+        case ScreenState.guide:
           _currentScreen = ScreenState.modeSelection;
+          break;
+        case ScreenState.capture:
+          _currentScreen = ScreenState.guide;
           break;
         case ScreenState.diagnosis:
           _currentScreen = ScreenState.capture;
@@ -69,7 +79,7 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         case ScreenState.geometricTool:
           _currentScreen = ScreenState.diagnosis;
           break;
-        default: 
+        default:
           Navigator.of(context).pop(); // Exit to dashboard
           break;
       }
@@ -79,7 +89,7 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
   void _navigateHome() {
     setState(() {
       _mode = AppMode.none;
-      _confidence = null;
+      _captureResult = null;
       _currentScreen = ScreenState.modeSelection;
     });
   }
@@ -101,6 +111,12 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
           language: _language,
           onModeSelected: _setModeAndNavigate,
         );
+      case ScreenState.guide:
+        return HowToScanScreen(
+          mode: _mode,
+          language: _language,
+          onUnderstand: _proceedToCapture,
+        );
       case ScreenState.capture:
         if (_mode == AppMode.head) {
           return HeadCaptureScreen(
@@ -117,7 +133,7 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         return DiagnosisScreen(
           mode: _mode,
           language: _language,
-          confidence: _confidence ?? 0,
+          result: _captureResult ?? ARCaptureResult.invalid(),
           onRetake: () {
             setState(() => _currentScreen = ScreenState.capture);
           },
@@ -170,32 +186,33 @@ class _ARCaptureMainScreenState extends State<ARCaptureMainScreen> {
         ),
         actions: [
           if (_currentScreen != ScreenState.languageSelection)
-          Center(
-            child: Padding(
-              padding: const EdgeInsets.only(right: 16.0),
-              child: Row(
-                children: [
-                   Text(
-                    _language == AppLanguage.en ? 'EN  |' : 'සිං  |',
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      _setLanguage(_language == AppLanguage.en
-                          ? AppLanguage.si : AppLanguage.en);
-                    },
-                    child: Text(
-                      _language == AppLanguage.en ? 'සිං' : 'EN',
-                      style: const TextStyle(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: Row(
+                  children: [
+                    Text(
+                      _language == AppLanguage.en ? 'EN  |' : 'සිං  |',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  )
-                ],
+                    TextButton(
+                      onPressed: () {
+                        _setLanguage(_language == AppLanguage.en
+                            ? AppLanguage.si
+                            : AppLanguage.en);
+                      },
+                      child: Text(
+                        _language == AppLanguage.en ? 'සිං' : 'EN',
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
+                  ],
+                ),
               ),
-            ),
-          )
+            )
         ],
       ),
       body: AnimatedSwitcher(

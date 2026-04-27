@@ -40,7 +40,7 @@ class FetalHealthResult {
 class FetalHealthService {
   // Flask backend running on the local PC via USB/WiFi
   // Update this if your PC's IP address changes
-  static const String _baseUrl = 'http://192.168.8.176:5000';
+  static const String _baseUrl = 'http://localhost:5000';
 
   /// Feature names in the correct order.
   static const List<String> featureNames = [

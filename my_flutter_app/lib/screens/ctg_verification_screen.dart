@@ -198,7 +198,8 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'Baseline HR: ${_baselineHr?.toStringAsFixed(1) ?? '—'} bpm  •  '
-                          '${_extractedData?['extraction_method'] == 'opencv_pipeline' ? 'OpenCV Pipeline' : 'Default Values'}',
+                          '${_extractedData?['extraction_method'] == 'opencv_pipeline' ? 'OpenCV Pipeline' : 'Default Values'}  •  '
+                          '${_extractedData?['features_extracted'] ?? 0} features extracted',
                           style: const TextStyle(
                               fontSize: 12, color: AppColors.textSecondary),
                         ),
@@ -257,10 +258,13 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
               child: Row(
                 children: [
                   _buildLegendChip(
-                      Icons.edit_rounded, 'Editable', AppColors.success),
-                  const SizedBox(width: 10),
+                      Icons.auto_fix_high_rounded, 'Extracted', AppColors.success),
+                  const SizedBox(width: 8),
                   _buildLegendChip(
-                      Icons.lock_rounded, 'Auto-filled', AppColors.grey500),
+                      Icons.calculate_rounded, 'Calculated', AppColors.info),
+                  const SizedBox(width: 8),
+                  _buildLegendChip(
+                      Icons.lock_rounded, 'Default', AppColors.grey500),
                 ],
               ),
             ),
@@ -388,6 +392,7 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
     final editable = _isEditable(featureName);
     final source = _getSource(featureName);
     final isExtracted = source == 'extracted';
+    final isCalculated = source == 'calculated';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
@@ -399,9 +404,11 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
           border: Border.all(
             color: isExtracted
                 ? AppColors.success.withOpacity(0.4)
-                : editable
-                    ? AppColors.inputBorder
-                    : AppColors.grey200,
+                : isCalculated
+                    ? AppColors.info.withOpacity(0.4)
+                    : editable
+                        ? AppColors.inputBorder
+                        : AppColors.grey200,
           ),
           boxShadow: editable
               ? [
@@ -439,17 +446,25 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
                     decoration: BoxDecoration(
                       color: isExtracted
                           ? AppColors.success.withOpacity(0.1)
-                          : AppColors.grey200,
+                          : isCalculated
+                              ? AppColors.info.withOpacity(0.1)
+                              : AppColors.grey200,
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
-                      isExtracted ? '✦ Extracted' : 'Default',
+                      isExtracted
+                          ? '✦ Extracted'
+                          : isCalculated
+                              ? '⊕ Calculated'
+                              : 'Default',
                       style: TextStyle(
                         fontSize: 9,
                         fontWeight: FontWeight.w600,
                         color: isExtracted
                             ? AppColors.success
-                            : AppColors.textMuted,
+                            : isCalculated
+                                ? AppColors.info
+                                : AppColors.textMuted,
                       ),
                     ),
                   ),
@@ -472,7 +487,9 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
                   color: editable
                       ? isExtracted
                           ? AppColors.success
-                          : AppColors.primary
+                          : isCalculated
+                              ? AppColors.info
+                              : AppColors.primary
                       : AppColors.textSecondary,
                 ),
                 decoration: InputDecoration(
@@ -483,7 +500,9 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
                   fillColor: editable
                       ? isExtracted
                           ? AppColors.success.withOpacity(0.07)
-                          : AppColors.primary.withOpacity(0.07)
+                          : isCalculated
+                              ? AppColors.info.withOpacity(0.07)
+                              : AppColors.primary.withOpacity(0.07)
                       : AppColors.grey200,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
@@ -494,7 +513,9 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
                     borderSide: BorderSide(
                       color: isExtracted
                           ? AppColors.success
-                          : AppColors.primary,
+                          : isCalculated
+                              ? AppColors.info
+                              : AppColors.primary,
                       width: 1.5,
                     ),
                   ),
@@ -515,12 +536,20 @@ class _CtgVerificationScreenState extends State<CtgVerificationScreen> {
             // Lock/edit icon
             const SizedBox(width: 8),
             Icon(
-              editable ? Icons.edit_rounded : Icons.lock_rounded,
+              editable
+                  ? isExtracted
+                      ? Icons.auto_fix_high_rounded
+                      : isCalculated
+                          ? Icons.calculate_rounded
+                          : Icons.edit_rounded
+                  : Icons.lock_rounded,
               size: 16,
               color: editable
                   ? isExtracted
                       ? AppColors.success
-                      : AppColors.primary
+                      : isCalculated
+                          ? AppColors.info
+                          : AppColors.primary
                   : AppColors.grey400,
             ),
           ],

@@ -66,6 +66,12 @@ class AppDrawer extends StatelessWidget {
                 isSelected: currentRoute == '/ar-capture',
                 onTap: () => _navigate(context, '/ar-capture'),
               ),
+              _DrawerItem(
+                icon: Icons.assignment_outlined,
+                label: 'Child AR Reports',
+                isSelected: currentRoute == '/child-reports',
+                onTap: () => _navigate(context, '/child-reports'),
+              ),
               const SizedBox(height: 16),
               _DrawerItem(
                 icon: Icons.view_in_ar_outlined,
